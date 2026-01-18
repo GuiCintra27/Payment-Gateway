@@ -1,0 +1,66 @@
+services:
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=gateway
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - go-gateway_default
+
+  kafka:
+    image: redpandadata/redpanda:v23.3.15
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp=1
+      - --memory=512M
+      - --reserve-memory=0M
+      - --node-id=0
+      - --kafka-addr=PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      - --advertise-kafka-addr=PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      - --rpc-addr=0.0.0.0:33145
+      - --advertise-rpc-addr=kafka:33145
+    ports:
+      - "9092:9092"
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health -X brokers=kafka:29092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - go-gateway_default
+
+  kafka-init:
+    image: redpandadata/redpanda:v23.3.15
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "-c"]
+    command: >
+      echo 'Iniciando criação dos tópicos...' &&
+      rpk topic create pending_transactions -X brokers=kafka:29092 || true &&
+      rpk topic create transactions_result -X brokers=kafka:29092 || true &&
+      rpk topic create transactions_result_dlq -X brokers=kafka:29092 || true &&
+      echo 'Tópicos criados com sucesso!'
+    networks:
+      - go-gateway_default
+
+volumes:
+  postgres_data:
+
+networks:
+  go-gateway_default:
+    external: true

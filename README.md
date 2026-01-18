@@ -1,0 +1,125 @@
+# Payment Gateway
+
+Projeto de estudo com arquitetura de microservicos para processamento de pagamentos e analise antifraude. O fluxo combina API Gateway (Go), processamento assincroano via Kafka, servico de antifraude (NestJS) e interface web (Next.js).
+
+## Stack
+
+- Gateway API: Go + chi
+- Antifraude: NestJS + Prisma
+- Frontend: Next.js + Tailwind
+- Mensageria: Kafka (redpanda)
+- Banco de dados: Postgres (gateway + antifraude)
+
+## Inicio rapido
+
+### Opcao 1: script local (recomendado)
+
+```bash
+./start-dev.sh
+```
+
+Variaveis uteis:
+
+- `GATEWAY_PORT` (padrao: 8080)
+- `ANTIFRAUD_PORT` (padrao: 3001)
+- `FRONTEND_PORT` (padrao: 3000)
+- `SKIP_INFRA=true` para nao subir Postgres/Kafka via Docker
+- `FORCE_KILL_PORTS=true` para liberar portas ocupadas
+- `STOP_INFRA_ON_EXIT=true` para derrubar infra ao sair
+
+### Opcao 2: tudo via Docker
+
+```bash
+docker compose up -d --build
+```
+
+Para parar:
+
+```bash
+docker compose down
+```
+
+### Opcao 3: infra no Docker + apps locais
+
+```bash
+docker compose -f docker-compose.infra.yaml up -d
+```
+
+Depois rode cada servico localmente:
+
+```bash
+cd go-gateway
+cp .env.example .env.local
+
+go run cmd/app/main.go
+```
+
+```bash
+cd nestjs-anti-fraud
+cp .env.example .env.local
+
+npm install
+npx prisma migrate dev
+npm run start:dev
+```
+
+```bash
+cd next-frontend
+cp .env.example .env.local
+
+npm install
+npm run dev
+```
+
+Para parar a infra:
+
+```bash
+docker compose -f docker-compose.infra.yaml down
+```
+
+## Endpoints e portas
+
+- Frontend (local script): http://localhost:3000
+- Frontend (docker compose): http://localhost:3002
+- Gateway API: http://localhost:8080
+- Gateway metrics: http://localhost:8080/metrics
+- Antifraude API: http://localhost:3001
+- Antifraude metrics: http://localhost:3001/metrics
+- Postgres gateway: localhost:5434
+- Postgres antifraude: localhost:5433
+- Kafka: localhost:9092
+
+## Demo rapido
+
+- UI: acesse `/` e clique em "Entrar no demo".
+- API: `POST /demo` cria uma conta com transferencias seed e retorna a API key.
+
+A API key aparece apenas uma vez na tela de boas-vindas.
+
+## Aviso de simulacao
+
+Este projeto e um simulador. Use apenas dados ficticios no formulario de cartao.
+
+## Documentacao
+
+Root:
+- Arquitetura: [docs/projects/ARCHITECTURE.md](docs/projects/ARCHITECTURE.md)
+- `docs/projects/ARCHITECTURE.md`
+- `docs/projects/INTEGRATIONS.md`
+- `docs/projects/INFRA.md`
+- `docs/projects/DATA-MODEL.md`
+- `docs/projects/SECURITY.md`
+- `docs/projects/OBSERVABILITY.md`
+- `docs/projects/FLOWS.md`
+- `docs/projects/RUNBOOK.md`
+
+Por servico:
+- `go-gateway/README.md` e `go-gateway/docs/projects/*`
+- `nestjs-anti-fraud/README.md` e `nestjs-anti-fraud/docs/projects/*`
+- `next-frontend/README.md` e `next-frontend/docs/projects/*`
+
+## Troubleshooting rapido
+
+- Porta ocupada: use `lsof -iTCP:<porta> -sTCP:LISTEN` e finalize o processo, ou rode `FORCE_KILL_PORTS=true ./start-dev.sh`.
+- Permissao em pastas `node_modules` ou `.next`: ajuste `LOCAL_UID`/`LOCAL_GID` no Docker Compose.
+- Kafka indisponivel: verifique `docker compose -f docker-compose.infra.yaml ps` e logs.
