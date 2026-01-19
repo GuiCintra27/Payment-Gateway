@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Download, CreditCard, Calendar, FileText, Hash, Clock } from "lucide-react"
+import { InvoiceDownloadButton } from "@/components/invoice-download-button"
+import { ArrowLeft, CreditCard, Calendar, FileText, Hash, Clock } from "lucide-react"
 import Link from "next/link"
 import { cookies } from "next/headers"
 import { StatusBadge } from "@/components/StatusBadge"
@@ -55,10 +55,12 @@ export default async function InvoiceDetailsPage({
             {invoice.id}
           </p>
         </div>
-        <Button variant="outline">
-          <Download className="size-4" />
-          Download PDF
-        </Button>
+        <InvoiceDownloadButton
+          invoice={invoice}
+          variant="outline"
+          size="sm"
+          showLabel
+        />
       </div>
 
       {/* Content Grid */}

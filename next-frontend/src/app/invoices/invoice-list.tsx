@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Plus, Eye, Download, ChevronLeft, ChevronRight, Receipt, TrendingUp, Clock, XCircle } from "lucide-react"
+import { Plus, Eye, ChevronLeft, ChevronRight, Receipt, TrendingUp, Clock } from "lucide-react"
 import Link from "next/link"
 import { StatusBadge } from "@/components/StatusBadge"
+import { InvoiceDownloadButton } from "@/components/invoice-download-button"
 import { cookies } from "next/headers"
 import { getApiBaseUrl } from "@/lib/api"
 
@@ -248,9 +249,11 @@ export async function InvoiceList({ page, size }: InvoiceListProps) {
                               <Eye className="size-4" />
                             </Link>
                           </Button>
-                          <Button variant="ghost" size="icon-sm">
-                            <Download className="size-4" />
-                          </Button>
+                          <InvoiceDownloadButton
+                            invoice={invoice}
+                            variant="ghost"
+                            size="icon-sm"
+                          />
                         </div>
                       </td>
                     </tr>
