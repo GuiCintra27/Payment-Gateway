@@ -2,22 +2,36 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-const Textarea = React.forwardRef<
-  HTMLTextAreaElement,
-  React.ComponentProps<"textarea">
->(({ className, ...props }, ref) => {
-  return (
-    <textarea
-      ref={ref}
-      data-slot="textarea"
-      className={cn(
-        "border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-        className
-      )}
-      {...props}
-    />
-  )
-})
+export interface TextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
+
+const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+  ({ className, ...props }, ref) => {
+    return (
+      <textarea
+        className={cn(
+          // Base styles (consistent with Input)
+          "flex min-h-[120px] w-full rounded-md border bg-background-subtle px-3 py-2 text-sm text-foreground transition-all duration-150 ease-out resize-none",
+          // Border
+          "border-border hover:border-white/12",
+          // Placeholder
+          "placeholder:text-muted-foreground/60",
+          // Focus state with glow
+          "focus:outline-none focus:border-primary focus:ring-[3px] focus:ring-primary-glow",
+          // Disabled state
+          "disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-border",
+          // Invalid state
+          "aria-invalid:border-destructive aria-invalid:focus:ring-destructive/20",
+          // Selection
+          "selection:bg-primary selection:text-primary-foreground",
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
 Textarea.displayName = "Textarea"
 
 export { Textarea }

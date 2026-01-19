@@ -1,265 +1,322 @@
-import { Button } from "@/components/ui/button";
-// import { Input } from "@/components/ui/input"
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { PlusIcon, Eye, Download } from "lucide-react";
-import Link from "next/link";
-import { StatusBadge } from "@/components/StatusBadge";
-import { cookies } from "next/headers";
-import { getApiBaseUrl } from "@/lib/api";
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Plus, Eye, Download, ChevronLeft, ChevronRight, Receipt, TrendingUp, Clock, XCircle } from "lucide-react"
+import Link from "next/link"
+import { StatusBadge } from "@/components/StatusBadge"
+import { cookies } from "next/headers"
+import { getApiBaseUrl } from "@/lib/api"
 
 export async function getInvoices() {
-  const cookiesStore = await cookies();
-  const apiKey = cookiesStore.get("apiKey")?.value;
-  const apiBaseUrl = getApiBaseUrl();
+  const cookiesStore = await cookies()
+  const apiKey = cookiesStore.get("apiKey")?.value
+  const apiBaseUrl = getApiBaseUrl()
   if (!apiKey) {
-    return [];
+    return []
   }
   const response = await fetch(`${apiBaseUrl}/invoice`, {
     headers: {
       "X-API-KEY": apiKey as string,
     },
     cache: "no-store",
-  });
-  return response.json();
+  })
+  return response.json()
 }
 
 type InvoiceListProps = {
-  page?: string;
-  size?: string;
-};
+  page?: string
+  size?: string
+}
 
 function parsePositiveInt(value: string | undefined, fallback: number, max?: number) {
-  const parsed = Number.parseInt(value ?? "", 10);
-  const normalized = Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+  const parsed = Number.parseInt(value ?? "", 10)
+  const normalized = Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
   if (typeof max === "number") {
-    return Math.min(normalized, max);
+    return Math.min(normalized, max)
   }
-  return normalized;
+  return normalized
 }
 
 export async function InvoiceList({ page, size }: InvoiceListProps) {
-  const invoices = await getInvoices();
-  const pageSize = parsePositiveInt(size, 3, 50);
-  const total = invoices.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const currentPage = Math.min(parsePositiveInt(page, 1), totalPages);
-  const startIndex = (currentPage - 1) * pageSize;
-  const pageInvoices = invoices.slice(startIndex, startIndex + pageSize);
-  const startLabel = total === 0 ? 0 : startIndex + 1;
-  const endLabel = Math.min(startIndex + pageSize, total);
-  const hasPrev = currentPage > 1;
-  const hasNext = currentPage < totalPages;
+  const invoices = await getInvoices()
+  const pageSize = parsePositiveInt(size, 5, 50)
+  const total = invoices.length
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const currentPage = Math.min(parsePositiveInt(page, 1), totalPages)
+  const startIndex = (currentPage - 1) * pageSize
+  const pageInvoices = invoices.slice(startIndex, startIndex + pageSize)
+  const startLabel = total === 0 ? 0 : startIndex + 1
+  const endLabel = Math.min(startIndex + pageSize, total)
+  const hasPrev = currentPage > 1
+  const hasNext = currentPage < totalPages
 
-  const maxPagesToShow = 5;
-  const halfWindow = Math.floor(maxPagesToShow / 2);
-  const windowStart = Math.max(1, currentPage - halfWindow);
-  const windowEnd = Math.min(totalPages, windowStart + maxPagesToShow - 1);
+  const maxPagesToShow = 5
+  const halfWindow = Math.floor(maxPagesToShow / 2)
+  const windowStart = Math.max(1, currentPage - halfWindow)
+  const windowEnd = Math.min(totalPages, windowStart + maxPagesToShow - 1)
   const pages = Array.from(
     { length: windowEnd - windowStart + 1 },
-    (_, index) => windowStart + index,
-  );
+    (_, index) => windowStart + index
+  )
 
-  const buildHref = (targetPage: number) => `/invoices?page=${targetPage}&size=${pageSize}`;
+  const buildHref = (targetPage: number) => `/invoices?page=${targetPage}&size=${pageSize}`
+
+  // Calculate stats
+  const approvedCount = invoices.filter((i: { status: string }) => i.status === "approved").length
+  const pendingCount = invoices.filter((i: { status: string }) => i.status === "pending").length
+  const rejectedCount = invoices.filter((i: { status: string }) => i.status === "rejected").length
+  const totalAmount = invoices.reduce((sum: number, i: { amount: number }) => sum + i.amount, 0)
 
   return (
-    <div className="bg-[#1e293b] rounded-lg p-6 border border-gray-800">
-      <div className="flex justify-between items-center mb-4">
+    <div className="space-y-6 animate-fadeIn">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white mb-1">Transferencias</h1>
-          <p className="text-gray-400">
-            Gerencie suas transferencias e acompanhe as transferencias
+          <div className="flex items-center gap-3">
+            <span className="h-4 w-[2px] rounded-full bg-primary/70" />
+            <h1 className="font-display text-2xl font-bold text-foreground">
+              Transacoes
+            </h1>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Gerencie e acompanhe suas transacoes
           </p>
         </div>
-        <Button
-          className="bg-indigo-600 hover:bg-indigo-700 text-white"
-          asChild
-        >
+        <Button asChild>
           <Link href="/invoices/create">
-            <PlusIcon className="h-4 w-4 mr-2" />
-            Nova Transferencia
+            <Plus className="size-4" />
+            Nova Transacao
           </Link>
         </Button>
       </div>
 
-      {/* Filtros */}
-      {/* <div className="bg-[#232f43] rounded-lg p-4 mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div>
-          <label className="text-sm text-gray-400 mb-1 block">Status</label>
-          <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger className="bg-[#2a3749] border-gray-700 text-white">
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              <SelectItem value="approved">Aprovado</SelectItem>
-              <SelectItem value="pending">Pendente</SelectItem>
-              <SelectItem value="rejected">Rejeitado</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      {/* KPI Strip */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="animate-slideUp stagger-1">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center size-10 rounded-lg bg-primary/10 text-primary">
+                <Receipt className="size-5" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold tabular-nums">{total}</p>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground/80">
+                  Total
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div>
-          <label className="text-sm text-gray-400 mb-1 block">Data Inicial</label>
-          <Input
-            type="text"
-            placeholder="dd/mm/aaaa"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="bg-[#2a3749] border-gray-700 text-white placeholder-gray-400"
-          />
-        </div>
+        <Card className="animate-slideUp stagger-2">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center size-10 rounded-lg bg-success-bg text-success">
+                <TrendingUp className="size-5" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold tabular-nums">{approvedCount}</p>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground/80">
+                  Aprovadas
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div>
-          <label className="text-sm text-gray-400 mb-1 block">Data Final</label>
-          <Input
-            type="text"
-            placeholder="dd/mm/aaaa"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="bg-[#2a3749] border-gray-700 text-white placeholder-gray-400"
-          />
-        </div>
+        <Card className="animate-slideUp stagger-3">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center size-10 rounded-lg bg-warning-bg text-warning">
+                <Clock className="size-5" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold tabular-nums">{pendingCount}</p>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground/80">
+                  Pendentes
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div>
-          <label className="text-sm text-gray-400 mb-1 block">Buscar</label>
-          <Input
-            type="text"
-            placeholder="ID ou descrição"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="bg-[#2a3749] border-gray-700 text-white placeholder-gray-400"
-          />
-        </div>
-      </div> */}
+        <Card className="animate-slideUp stagger-4">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center size-10 rounded-lg bg-accent/10 text-accent">
+                <span className="text-sm font-bold">R$</span>
+              </div>
+              <div>
+                <p className="text-2xl font-bold tabular-nums">
+                  {totalAmount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                </p>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground/80">
+                  Volume
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* Tabela de Transferencias */}
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-800">
-              <th className="text-left py-3 px-4 text-gray-400 font-medium text-sm">
-                ID
-              </th>
-              <th className="text-left py-3 px-4 text-gray-400 font-medium text-sm">
-                DATA
-              </th>
-              <th className="text-left py-3 px-4 text-gray-400 font-medium text-sm">
-                DESCRIÇÃO
-              </th>
-              <th className="text-left py-3 px-4 text-gray-400 font-medium text-sm">
-                VALOR
-              </th>
-              <th className="text-left py-3 px-4 text-gray-400 font-medium text-sm">
-                STATUS
-              </th>
-              <th className="text-left py-3 px-4 text-gray-400 font-medium text-sm">
-                AÇÕES
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {pageInvoices.map((invoice) => (
-              <tr key={invoice.id} className="border-b border-gray-800">
-                <td className="py-4 px-4 text-white">{invoice.id}</td>
-                <td className="py-4 px-4 text-white">
-                  {new Date(invoice.created_at).toLocaleDateString()}
-                </td>
-                <td className="py-4 px-4 text-white">{invoice.description}</td>
-                <td className="py-4 px-4 text-white">
-                  R$ {invoice.amount.toFixed(2).replace(".", ",")}
-                </td>
-                <td className="py-4 px-4">
-                  <StatusBadge status={invoice.status} />
-                </td>
-                <td className="py-4 px-4">
-                  <div className="flex gap-2">
+      {/* Table Card */}
+      <Card className="animate-slideUp stagger-5">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border/70">
+                  <th className="text-left py-2.5 px-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/80">
+                    ID
+                  </th>
+                  <th className="text-left py-2.5 px-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/80">
+                    Data
+                  </th>
+                  <th className="text-left py-2.5 px-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/80">
+                    Descricao
+                  </th>
+                  <th className="text-left py-2.5 px-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/80">
+                    Valor
+                  </th>
+                  <th className="text-left py-2.5 px-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/80">
+                    Status
+                  </th>
+                  <th className="text-right py-2.5 px-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/80">
+                    Acoes
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {pageInvoices.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="flex items-center justify-center size-12 rounded-full bg-secondary">
+                          <Receipt className="size-6 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            Nenhuma transacao encontrada
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Crie sua primeira transacao para comecar
+                          </p>
+                        </div>
+                        <Button asChild size="sm" className="mt-2">
+                          <Link href="/invoices/create">
+                            <Plus className="size-4" />
+                            Nova Transacao
+                          </Link>
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  pageInvoices.map((invoice: {
+                    id: string
+                    created_at: string
+                    description: string
+                    amount: number
+                    status: "approved" | "pending" | "rejected"
+                  }) => (
+                    <tr
+                      key={invoice.id}
+                      className="border-b border-border/50 hover:bg-white/[0.03] transition-colors duration-150"
+                    >
+                      <td className="py-3 px-4">
+                        <span className="font-mono text-sm text-foreground">
+                          {invoice.id.slice(0, 8)}...
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-sm text-muted-foreground">
+                        {new Date(invoice.created_at).toLocaleDateString("pt-BR")}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-foreground max-w-[200px] truncate">
+                        {invoice.description}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="font-mono text-sm font-medium text-foreground tabular-nums">
+                          R$ {invoice.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <StatusBadge status={invoice.status} />
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex justify-end gap-1">
+                          <Button variant="ghost" size="icon-sm" asChild>
+                            <Link href={`/invoices/${invoice.id}`}>
+                              <Eye className="size-4" />
+                            </Link>
+                          </Button>
+                          <Button variant="ghost" size="icon-sm">
+                            <Download className="size-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {total > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 border-t border-border">
+              <p className="text-xs text-muted-foreground">
+                Mostrando {startLabel} - {endLabel} de {total} resultados
+              </p>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  disabled={!hasPrev}
+                  asChild={hasPrev}
+                >
+                  {hasPrev ? (
+                    <Link href={buildHref(currentPage - 1)}>
+                      <ChevronLeft className="size-4" />
+                    </Link>
+                  ) : (
+                    <ChevronLeft className="size-4" />
+                  )}
+                </Button>
+
+                {pages.map((pageNumber) => {
+                  const isActive = pageNumber === currentPage
+                  return (
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 hover:bg-gray-700"
+                      key={pageNumber}
+                      variant={isActive ? "default" : "ghost"}
+                      size="icon-sm"
                       asChild
                     >
-                      <Link href={`/invoices/${invoice.id}`}>
-                        <Eye className="h-4 w-4 text-gray-400" />
+                      <Link href={buildHref(pageNumber)}>
+                        {pageNumber}
                       </Link>
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 hover:bg-gray-700"
-                    >
-                      <Download className="h-4 w-4 text-gray-400" />
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  )
+                })}
 
-      {/* Paginação */}
-      <div className="flex justify-between items-center mt-4">
-        <div className="text-sm text-gray-400">
-          Mostrando {startLabel} - {endLabel} de {total} resultados
-        </div>
-        <div className="flex gap-1">
-          {hasPrev ? (
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8 bg-[#2a3749] border-gray-700"
-              asChild
-            >
-              <Link href={buildHref(currentPage - 1)}>&lt;</Link>
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8 bg-[#2a3749] border-gray-700"
-              disabled
-            >
-              &lt;
-            </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  disabled={!hasNext}
+                  asChild={hasNext}
+                >
+                  {hasNext ? (
+                    <Link href={buildHref(currentPage + 1)}>
+                      <ChevronRight className="size-4" />
+                    </Link>
+                  ) : (
+                    <ChevronRight className="size-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
           )}
-
-          {pages.map((pageNumber) => {
-            const isActive = pageNumber === currentPage;
-            return (
-              <Button
-                key={pageNumber}
-                size="sm"
-                className={isActive ? "h-8 w-8 bg-indigo-600 text-white" : "h-8 w-8 bg-[#2a3749] border border-gray-700"}
-                variant={isActive ? "default" : "outline"}
-                asChild
-              >
-                <Link href={buildHref(pageNumber)}>{pageNumber}</Link>
-              </Button>
-            );
-          })}
-
-          {hasNext ? (
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8 bg-[#2a3749] border-gray-700"
-              asChild
-            >
-              <Link href={buildHref(currentPage + 1)}>&gt;</Link>
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8 bg-[#2a3749] border-gray-700"
-              disabled
-            >
-              &gt;
-            </Button>
-          )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
-  );
+  )
 }
