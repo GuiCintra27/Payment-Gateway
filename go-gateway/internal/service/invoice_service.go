@@ -41,6 +41,10 @@ func (s *InvoiceService) Create(input dto.CreateInvoiceInput) (*dto.InvoiceOutpu
 		return nil, err
 	}
 
+	if err := s.invoiceRepository.Save(invoice); err != nil {
+		return nil, err
+	}
+
 	// Se o status for pending, significa que é uma transação de alto valor
 	if invoice.Status == domain.StatusPending {
 		// Criar e publicar evento de transação pendente
@@ -57,14 +61,10 @@ func (s *InvoiceService) Create(input dto.CreateInvoiceInput) (*dto.InvoiceOutpu
 
 	// Para transações aprovadas, atualizar o saldo
 	if invoice.Status == domain.StatusApproved {
-		_, err = s.accountService.UpdateBalance(input.APIKey, invoice.Amount)
+		_, err = s.accountService.UpdateBalanceByAccountID(invoice.AccountID, invoice.Amount)
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	if err := s.invoiceRepository.Save(invoice); err != nil {
-		return nil, err
 	}
 
 	return dto.FromInvoice(invoice), nil
@@ -127,12 +127,7 @@ func (s *InvoiceService) ProcessTransactionResult(invoiceID string, status domai
 	}
 
 	if status == domain.StatusApproved {
-		account, err := s.accountService.FindByID(invoice.AccountID)
-		if err != nil {
-			return err
-		}
-
-		if _, err := s.accountService.UpdateBalance(account.APIKey, invoice.Amount); err != nil {
+		if _, err := s.accountService.UpdateBalanceByAccountID(invoice.AccountID, invoice.Amount); err != nil {
 			return err
 		}
 	}

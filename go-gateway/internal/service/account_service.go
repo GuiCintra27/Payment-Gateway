@@ -55,10 +55,28 @@ func (s *AccountService) UpdateBalance(apiKey string, amount float64) (*dto.Acco
 	}
 
 	account.AddBalance(amount)
-	err = s.repository.UpdateBalance(account)
+	err = s.repository.AddBalance(account.ID, amount)
 	if err != nil {
 		return nil, err
 	}
+	output := dto.FromAccount(account)
+	output.APIKey = ""
+	return &output, nil
+}
+
+// UpdateBalanceByAccountID atualiza o saldo usando o account_id (sem API key)
+func (s *AccountService) UpdateBalanceByAccountID(accountID string, amount float64) (*dto.AccountOutput, error) {
+	account, err := s.repository.FindByID(accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	account.AddBalance(amount)
+	err = s.repository.AddBalance(account.ID, amount)
+	if err != nil {
+		return nil, err
+	}
+
 	output := dto.FromAccount(account)
 	output.APIKey = ""
 	return &output, nil
@@ -82,5 +100,6 @@ func (s *AccountService) FindByID(id string) (*dto.AccountOutput, error) {
 		return nil, err
 	}
 	output := dto.FromAccount(account)
+	output.APIKey = ""
 	return &output, nil
 }

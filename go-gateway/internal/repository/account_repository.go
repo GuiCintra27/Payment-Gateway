@@ -171,3 +171,31 @@ func (r *AccountRepository) UpdateBalance(account *domain.Account) error {
 	}
 	return tx.Commit()
 }
+
+// AddBalance atualiza o saldo somando o amount de forma atômica.
+func (r *AccountRepository) AddBalance(accountID string, amount float64) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	result, err := tx.Exec(`
+        UPDATE accounts
+        SET balance = balance + $1, updated_at = $2
+        WHERE id = $3
+    `, amount, time.Now(), accountID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return domain.ErrAccountNotFound
+	}
+
+	return tx.Commit()
+}

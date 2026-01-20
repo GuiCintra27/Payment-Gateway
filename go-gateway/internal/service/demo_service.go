@@ -109,7 +109,7 @@ func (s *DemoService) seedInvoices(account *domain.Account) error {
 
 	if approvedTotal > 0 {
 		account.AddBalance(approvedTotal)
-		if err := s.accountRepository.UpdateBalance(account); err != nil {
+		if err := s.accountRepository.AddBalance(account.ID, approvedTotal); err != nil {
 			return err
 		}
 	}

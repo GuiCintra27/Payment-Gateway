@@ -27,7 +27,12 @@ export class FraudService {
       });
 
       if (foundInvoice) {
-        throw new Error('Invoice has already been processed');
+        return {
+          invoice: foundInvoice,
+          fraudResult: {
+            hasFraud: foundInvoice.status === InvoiceStatus.REJECTED,
+          },
+        };
       }
 
       //insert or update

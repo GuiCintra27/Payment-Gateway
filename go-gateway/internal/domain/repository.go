@@ -6,6 +6,7 @@ type AccountRepository interface {
 	FindByEmail(email string) (*Account, error)
 	FindByID(id string) (*Account, error)
 	UpdateBalance(account *Account) error
+	AddBalance(accountID string, amount float64) error
 }
 
 type InvoiceRepository interface {
