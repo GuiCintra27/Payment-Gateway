@@ -13,6 +13,7 @@ NC='\033[0m'
 
 BACKEND_PID=""
 ANTIFRAUD_PID=""
+ANTIFRAUD_WORKER_PID=""
 FRONTEND_PID=""
 COMPOSE_CMD=""
 INFRA_STARTED="false"
@@ -40,6 +41,11 @@ cleanup() {
   if [ -n "${ANTIFRAUD_PID}" ] && kill -0 "${ANTIFRAUD_PID}" 2>/dev/null; then
     log_warn "Stopping antifraud (PID ${ANTIFRAUD_PID})..."
     kill "${ANTIFRAUD_PID}" 2>/dev/null || true
+  fi
+
+  if [ -n "${ANTIFRAUD_WORKER_PID}" ] && kill -0 "${ANTIFRAUD_WORKER_PID}" 2>/dev/null; then
+    log_warn "Stopping antifraud worker (PID ${ANTIFRAUD_WORKER_PID})..."
+    kill "${ANTIFRAUD_WORKER_PID}" 2>/dev/null || true
   fi
 
   if [ -n "${BACKEND_PID}" ] && kill -0 "${BACKEND_PID}" 2>/dev/null; then
@@ -114,10 +120,14 @@ check_ports() {
 
 GATEWAY_PORT="${GATEWAY_PORT:-8080}"
 ANTIFRAUD_PORT="${ANTIFRAUD_PORT:-3001}"
+ANTIFRAUD_WORKER_PORT="${ANTIFRAUD_WORKER_PORT:-3101}"
 FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 
 check_ports "${GATEWAY_PORT}" "API Gateway"
 check_ports "${ANTIFRAUD_PORT}" "Anti-fraud"
+if [ "${START_ANTIFRAUD_WORKER:-true}" = "true" ]; then
+  check_ports "${ANTIFRAUD_WORKER_PORT}" "Anti-fraud worker"
+fi
 check_ports "${FRONTEND_PORT}" "Frontend"
 
 log_info "Starting API Gateway (Go)..."
@@ -160,6 +170,33 @@ if ! kill -0 "${ANTIFRAUD_PID}" 2>/dev/null; then
 fi
 echo -e "${GREEN}[OK]${NC} Antifraud running at http://localhost:${ANTIFRAUD_PORT}"
 
+if [ "${START_ANTIFRAUD_WORKER:-true}" = "true" ]; then
+  log_info "Starting Anti-fraud worker (Kafka)..."
+  (
+    cd "${ROOT_DIR}/nestjs-anti-fraud"
+    if [ ! -d "node_modules" ]; then
+      log_info "Installing antifraud dependencies..."
+      npm install
+    fi
+    if [ -f ".env.local" ]; then
+      set -a
+      . ./.env.local
+      set +a
+    fi
+    ANTIFRAUD_WORKER_PORT="${ANTIFRAUD_WORKER_PORT:-3101}" npm run start:kafka:dev
+  ) &
+  ANTIFRAUD_WORKER_PID=$!
+
+  sleep 3
+  if ! kill -0 "${ANTIFRAUD_WORKER_PID}" 2>/dev/null; then
+    log_error "Antifraud worker failed to start. Check logs above."
+    exit 1
+  fi
+  echo -e "${GREEN}[OK]${NC} Antifraud worker running (Kafka consumer)"
+else
+  log_warn "START_ANTIFRAUD_WORKER=false set, skipping Kafka worker."
+fi
+
 log_info "Starting Frontend (Next.js)..."
 check_ports "${FRONTEND_PORT}" "Frontend"
 (
@@ -189,9 +226,17 @@ echo -e "Gateway API:        ${BLUE}http://localhost:${GATEWAY_PORT}${NC}"
 echo -e "Gateway metrics:    ${BLUE}http://localhost:${GATEWAY_PORT}/metrics${NC}"
 echo -e "Anti-fraud API:     ${BLUE}http://localhost:${ANTIFRAUD_PORT}${NC}"
 echo -e "Anti-fraud metrics: ${BLUE}http://localhost:${ANTIFRAUD_PORT}/metrics${NC}"
+if [ "${START_ANTIFRAUD_WORKER:-true}" = "true" ]; then
+  echo -e "Anti-fraud worker:  ${BLUE}running (Kafka consumer)${NC}"
+  echo -e "Worker metrics:     ${BLUE}http://localhost:${ANTIFRAUD_WORKER_PORT}/metrics${NC}"
+fi
 echo ""
 echo -e "${YELLOW}Hot-reload is enabled.${NC}"
 echo -e "Press ${GREEN}Ctrl+C${NC} to stop local services."
 echo ""
 
-wait "${BACKEND_PID}" "${ANTIFRAUD_PID}" "${FRONTEND_PID}"
+if [ -n "${ANTIFRAUD_WORKER_PID}" ]; then
+  wait "${BACKEND_PID}" "${ANTIFRAUD_PID}" "${ANTIFRAUD_WORKER_PID}" "${FRONTEND_PID}"
+else
+  wait "${BACKEND_PID}" "${ANTIFRAUD_PID}" "${FRONTEND_PID}"
+fi

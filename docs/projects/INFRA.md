@@ -14,8 +14,10 @@ O repositorio possui dois arquivos principais:
 - `kafka` (redpanda)
 - `kafka-init` (cria topicos)
 - `go-migrate` (aplica migrations do gateway)
+- `nestjs-migrate` (aplica migrations do antifraude)
 - `go-gateway`
 - `nestjs-anti-fraud`
+- `nestjs-worker`
 - `next-frontend`
 
 ### Servicos (docker-compose.infra.yaml)
@@ -39,6 +41,7 @@ Todos os servicos compartilham a rede `gateway-network`.
 
 - Gateway: 8080
 - Antifraude: 3001
+- Antifraude worker metrics: 3101
 - Frontend: 3002 (docker)
 - Postgres gateway: 5434
 - Postgres antifraude: 5433

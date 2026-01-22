@@ -23,7 +23,7 @@ func NewAccountRepository(db *sql.DB) *AccountRepository {
 func (r *AccountRepository) Save(account *domain.Account) error {
 	apiKeyHash := security.HashAPIKey(account.APIKey)
 	stmt, err := r.db.Prepare(`
-        INSERT INTO accounts (id, name, email, api_key, balance, created_at, updated_at)
+        INSERT INTO accounts (id, name, email, api_key, balance_cents, created_at, updated_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
     `)
 	if err != nil {
@@ -36,7 +36,7 @@ func (r *AccountRepository) Save(account *domain.Account) error {
 		account.Name,
 		account.Email,
 		apiKeyHash,
-		account.Balance,
+		account.BalanceCents,
 		account.CreatedAt,
 		account.UpdatedAt,
 	)
@@ -54,7 +54,7 @@ func (r *AccountRepository) FindByAPIKey(apiKey string) (*domain.Account, error)
 	var createdAt, updatedAt time.Time
 
 	err := r.db.QueryRow(`
-		SELECT id, name, email, api_key, balance, created_at, updated_at
+		SELECT id, name, email, api_key, balance_cents, created_at, updated_at
 		FROM accounts
 		WHERE api_key = $1
 	`, apiKeyHash).Scan(
@@ -62,7 +62,7 @@ func (r *AccountRepository) FindByAPIKey(apiKey string) (*domain.Account, error)
 		&account.Name,
 		&account.Email,
 		&account.APIKey,
-		&account.Balance,
+		&account.BalanceCents,
 		&createdAt,
 		&updatedAt,
 	)
@@ -85,7 +85,7 @@ func (r *AccountRepository) FindByEmail(email string) (*domain.Account, error) {
 	var createdAt, updatedAt time.Time
 
 	err := r.db.QueryRow(`
-		SELECT id, name, email, api_key, balance, created_at, updated_at
+		SELECT id, name, email, api_key, balance_cents, created_at, updated_at
 		FROM accounts
 		WHERE email = $1
 	`, email).Scan(
@@ -93,7 +93,7 @@ func (r *AccountRepository) FindByEmail(email string) (*domain.Account, error) {
 		&account.Name,
 		&account.Email,
 		&account.APIKey,
-		&account.Balance,
+		&account.BalanceCents,
 		&createdAt,
 		&updatedAt,
 	)
@@ -116,7 +116,7 @@ func (r *AccountRepository) FindByID(id string) (*domain.Account, error) {
 	var createdAt, updatedAt time.Time
 
 	err := r.db.QueryRow(`
-		SELECT id, name, email, api_key, balance, created_at, updated_at
+		SELECT id, name, email, api_key, balance_cents, created_at, updated_at
 		FROM accounts
 		WHERE id = $1
 	`, id).Scan(
@@ -124,7 +124,7 @@ func (r *AccountRepository) FindByID(id string) (*domain.Account, error) {
 		&account.Name,
 		&account.Email,
 		&account.APIKey,
-		&account.Balance,
+		&account.BalanceCents,
 		&createdAt,
 		&updatedAt,
 	)
@@ -150,8 +150,8 @@ func (r *AccountRepository) UpdateBalance(account *domain.Account) error {
 	defer tx.Rollback()
 
 	// SELECT FOR UPDATE previne race conditions no saldo
-	var currentBalance float64
-	err = tx.QueryRow(`SELECT balance FROM accounts WHERE id = $1 FOR UPDATE`,
+	var currentBalance int64
+	err = tx.QueryRow(`SELECT balance_cents FROM accounts WHERE id = $1 FOR UPDATE`,
 		account.ID).Scan(&currentBalance)
 
 	if err == sql.ErrNoRows {
@@ -163,9 +163,9 @@ func (r *AccountRepository) UpdateBalance(account *domain.Account) error {
 
 	_, err = tx.Exec(`
         UPDATE accounts
-        SET balance = $1, updated_at = $2
+        SET balance_cents = $1, updated_at = $2
         WHERE id = $3
-    `, account.Balance, time.Now(), account.ID)
+    `, account.BalanceCents, time.Now(), account.ID)
 	if err != nil {
 		return err
 	}
@@ -173,7 +173,7 @@ func (r *AccountRepository) UpdateBalance(account *domain.Account) error {
 }
 
 // AddBalance atualiza o saldo somando o amount de forma atômica.
-func (r *AccountRepository) AddBalance(accountID string, amount float64) error {
+func (r *AccountRepository) AddBalance(accountID string, amountCents int64) error {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return err
@@ -182,9 +182,9 @@ func (r *AccountRepository) AddBalance(accountID string, amount float64) error {
 
 	result, err := tx.Exec(`
         UPDATE accounts
-        SET balance = balance + $1, updated_at = $2
+        SET balance_cents = balance_cents + $1, updated_at = $2
         WHERE id = $3
-    `, amount, time.Now(), accountID)
+    `, amountCents, time.Now(), accountID)
 	if err != nil {
 		return err
 	}

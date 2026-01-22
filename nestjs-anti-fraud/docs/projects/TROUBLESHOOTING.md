@@ -9,6 +9,8 @@
 
 - Verifique `KAFKA_BROKER`.
 - Confirme que `kafka` esta ativo no Docker.
+- Certifique-se de que o worker Kafka esta em execucao (`npm run start:kafka:dev`).
+- Confira se `ANTIFRAUD_WORKER_PORT` (padrao 3101) esta livre para o worker expor metrics.
 
 ## Falhas de consumo
 

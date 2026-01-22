@@ -51,7 +51,7 @@ func (s *InvoiceService) Create(input dto.CreateInvoiceInput) (*dto.InvoiceOutpu
 		pendingTransaction := events.NewPendingTransaction(
 			invoice.AccountID,
 			invoice.ID,
-			invoice.Amount,
+			domain.CentsToAmount(invoice.AmountCents),
 		)
 
 		if err := s.kafkaProducer.SendingPendingTransaction(context.Background(), *pendingTransaction); err != nil {
@@ -61,7 +61,7 @@ func (s *InvoiceService) Create(input dto.CreateInvoiceInput) (*dto.InvoiceOutpu
 
 	// Para transações aprovadas, atualizar o saldo
 	if invoice.Status == domain.StatusApproved {
-		_, err = s.accountService.UpdateBalanceByAccountID(invoice.AccountID, invoice.Amount)
+		_, err = s.accountService.UpdateBalanceByAccountID(invoice.AccountID, invoice.AmountCents)
 		if err != nil {
 			return nil, err
 		}
@@ -113,24 +113,5 @@ func (s *InvoiceService) ListByAccountAPIKey(apiKey string) ([]*dto.InvoiceOutpu
 
 // ProcessTransactionResult processa o resultado de uma transação após análise de fraude
 func (s *InvoiceService) ProcessTransactionResult(invoiceID string, status domain.Status) error {
-	invoice, err := s.invoiceRepository.FindByID(invoiceID)
-	if err != nil {
-		return err
-	}
-
-	if err := invoice.UpdateStatus(status); err != nil {
-		return err
-	}
-
-	if err := s.invoiceRepository.UpdateStatus(invoice); err != nil {
-		return err
-	}
-
-	if status == domain.StatusApproved {
-		if _, err := s.accountService.UpdateBalanceByAccountID(invoice.AccountID, invoice.Amount); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return s.invoiceRepository.ApplyTransactionResult(invoiceID, status)
 }

@@ -6,7 +6,6 @@ import { UnusualAmountSpecification } from './fraud/specifications/unusual-amoun
 import { FraudAggregateSpecification } from './fraud/specifications/fraud-aggregate.specification';
 import { InvoicesService } from './invoices.service';
 import { InvoicesController } from './invoices.controller';
-import { InvoicesConsumer } from './invoices.consumer';
 import * as kafkaLib from '@confluentinc/kafka-javascript';
 import { PublishProcessedInvoiceListener } from './events/publish-processed-invoice.listener';
 import { MetricsModule } from '../metrics/metrics.module';
@@ -46,6 +45,6 @@ import { MetricsModule } from '../metrics/metrics.module';
     },
     PublishProcessedInvoiceListener,
   ],
-  controllers: [InvoicesController, InvoicesConsumer],
+  controllers: [InvoicesController],
 })
 export class InvoicesModule {}

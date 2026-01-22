@@ -15,7 +15,7 @@
 ## Criar transferencia
 
 1. UI envia `POST /invoice` com `X-API-KEY` e dados do pagamento.
-2. Gateway valida payload e cria transferencia.
+2. Gateway valida payload, converte `amount` para centavos e cria transferencia.
 3. Se `amount <= 10000`:
    - transferencia aprovada/rejeitada localmente.
 4. Se `amount > 10000`:

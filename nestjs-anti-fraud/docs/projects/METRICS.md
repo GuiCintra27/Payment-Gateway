@@ -1,6 +1,9 @@
 # Metrics
 
-Endpoint: `GET /metrics`
+Endpoints:
+
+- `GET /metrics` (HTTP app)
+- `GET /metrics` (worker Kafka, porta definida por `ANTIFRAUD_WORKER_PORT`)
 
 Campos:
 
@@ -11,7 +14,7 @@ Campos:
 - `last_processed_at`
 - `uptime_seconds`
 
-Exemplo:
+Exemplo (worker Kafka):
 
 ```json
 {

@@ -29,6 +29,13 @@ npx prisma migrate dev
 npm run start:dev
 ```
 
+Em outro terminal, inicie o worker Kafka:
+
+```bash
+cd nestjs-anti-fraud
+npm run start:kafka:dev
+```
+
 ## Variaveis de ambiente
 
 Veja `nestjs-anti-fraud/.env.example`:
@@ -39,12 +46,14 @@ Veja `nestjs-anti-fraud/.env.example`:
 - `INVOICES_HISTORY_COUNT`
 - `SUSPICIOUS_INVOICES_COUNT`
 - `SUSPICIOUS_TIMEFRAME_HOURS`
+- `ANTIFRAUD_WORKER_PORT` (porta do worker/metrics)
 
 ## Endpoints
 
 - `GET /invoices`
 - `GET /invoices/:id`
-- `GET /metrics`
+- `GET /metrics` (HTTP)
+- `GET /metrics` (worker Kafka, porta 3101)
 
 ## Documentacao
 

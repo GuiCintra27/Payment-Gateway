@@ -163,7 +163,7 @@ func NewKafkaConsumer(
 
 func (c *KafkaConsumer) Consume(ctx context.Context) error {
 	for {
-		msg, err := c.reader.ReadMessage(ctx)
+		msg, err := c.reader.FetchMessage(ctx)
 		if err != nil {
 			slog.Error("erro ao ler mensagem do kafka", "error", err)
 			time.Sleep(500 * time.Millisecond)
@@ -174,12 +174,14 @@ func (c *KafkaConsumer) Consume(ctx context.Context) error {
 		if err := json.Unmarshal(msg.Value, &result); err != nil {
 			slog.Error("erro ao converter mensagem para TransactionResult", "error", err)
 			c.sendToDLQ(ctx, msg.Value, "", "", "", "invalid_payload")
+			c.commitMessage(ctx, msg)
 			continue
 		}
 
 		if result.EventID == "" {
 			slog.Error("mensagem sem event_id", "invoice_id", result.InvoiceID)
 			c.sendToDLQ(ctx, msg.Value, result.EventID, result.InvoiceID, result.Status, "missing_event_id")
+			c.commitMessage(ctx, msg)
 			continue
 		}
 
@@ -187,10 +189,12 @@ func (c *KafkaConsumer) Consume(ctx context.Context) error {
 		if err != nil {
 			slog.Error("erro ao checar deduplicacao", "error", err, "event_id", result.EventID)
 			c.sendToDLQ(ctx, msg.Value, result.EventID, result.InvoiceID, result.Status, "dedup_check_failed")
+			c.commitMessage(ctx, msg)
 			continue
 		}
 		if processed {
 			slog.Info("evento duplicado ignorado", "event_id", result.EventID, "invoice_id", result.InvoiceID)
+			c.commitMessage(ctx, msg)
 			continue
 		}
 
@@ -208,17 +212,22 @@ func (c *KafkaConsumer) Consume(ctx context.Context) error {
 				"status", result.Status,
 				"event_id", result.EventID)
 			c.sendToDLQ(ctx, msg.Value, result.EventID, result.InvoiceID, result.Status, err.Error())
+			c.commitMessage(ctx, msg)
 			continue
 		}
 
 		if err := c.processedStore.Save(result.EventID, result.InvoiceID); err != nil {
 			slog.Error("erro ao salvar evento processado", "error", err, "event_id", result.EventID)
+			time.Sleep(500 * time.Millisecond)
+			continue
 		}
 
 		slog.Info("transação processada com sucesso",
 			"invoice_id", result.InvoiceID,
 			"event_id", result.EventID,
 			"status", result.Status)
+
+		c.commitMessage(ctx, msg)
 	}
 }
 
@@ -228,6 +237,12 @@ func (c *KafkaConsumer) Close() error {
 		_ = c.dlqWriter.Close()
 	}
 	return c.reader.Close()
+}
+
+func (c *KafkaConsumer) commitMessage(ctx context.Context, msg kafka.Message) {
+	if err := c.reader.CommitMessages(ctx, msg); err != nil {
+		slog.Error("erro ao commitar offset no kafka", "error", err, "topic", c.topic)
+	}
 }
 
 type dlqMessage struct {

@@ -18,7 +18,10 @@ func NewAccountService(repository domain.AccountRepository) *AccountService {
 // CreateAccount cria uma nova conta e valida duplicidade de API Key
 // Retorna ErrDuplicatedAPIKey se a chave já existir
 func (s *AccountService) CreateAccount(input dto.CreateAccountInput) (*dto.AccountOutput, error) {
-	account := dto.ToAccount(input)
+	account, err := dto.ToAccount(input)
+	if err != nil {
+		return nil, err
+	}
 
 	// Verifica duplicidade de API Key antes da criação
 	existingAccount, err := s.repository.FindByAPIKey(account.APIKey)
@@ -47,15 +50,15 @@ func (s *AccountService) CreateAccount(input dto.CreateAccountInput) (*dto.Accou
 }
 
 // UpdateBalance atualiza o saldo de uma conta de forma thread-safe
-// O amount pode ser positivo (crédito)
-func (s *AccountService) UpdateBalance(apiKey string, amount float64) (*dto.AccountOutput, error) {
+// O amountCents pode ser positivo (crédito)
+func (s *AccountService) UpdateBalance(apiKey string, amountCents int64) (*dto.AccountOutput, error) {
 	account, err := s.repository.FindByAPIKey(apiKey)
 	if err != nil {
 		return nil, err
 	}
 
-	account.AddBalance(amount)
-	err = s.repository.AddBalance(account.ID, amount)
+	account.AddBalance(amountCents)
+	err = s.repository.AddBalance(account.ID, amountCents)
 	if err != nil {
 		return nil, err
 	}
@@ -65,14 +68,14 @@ func (s *AccountService) UpdateBalance(apiKey string, amount float64) (*dto.Acco
 }
 
 // UpdateBalanceByAccountID atualiza o saldo usando o account_id (sem API key)
-func (s *AccountService) UpdateBalanceByAccountID(accountID string, amount float64) (*dto.AccountOutput, error) {
+func (s *AccountService) UpdateBalanceByAccountID(accountID string, amountCents int64) (*dto.AccountOutput, error) {
 	account, err := s.repository.FindByID(accountID)
 	if err != nil {
 		return nil, err
 	}
 
-	account.AddBalance(amount)
-	err = s.repository.AddBalance(account.ID, amount)
+	account.AddBalance(amountCents)
+	err = s.repository.AddBalance(account.ID, amountCents)
 	if err != nil {
 		return nil, err
 	}

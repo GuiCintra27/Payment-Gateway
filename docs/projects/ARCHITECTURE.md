@@ -57,7 +57,8 @@ Fluxo macro (sincrono + assincroano):
 
 ### Antifraude (NestJS)
 
-- Consome eventos de transacoes pendentes
+- HTTP app expõe API/metrics (porta 3001)
+- Worker Kafka consome eventos de transacoes pendentes e expõe metrics (porta 3101)
 - Aplica regras de fraude (specifications)
 - Persiste resultado em banco proprio
 - Publica o resultado no Kafka

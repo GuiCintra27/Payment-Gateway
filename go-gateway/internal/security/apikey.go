@@ -10,6 +10,13 @@ import (
 func HashAPIKey(apiKey string) string {
 	secret := os.Getenv("API_KEY_SECRET")
 	if secret == "" {
+		env := os.Getenv("ENV")
+		if env == "" {
+			env = os.Getenv("APP_ENV")
+		}
+		if env != "dev" && env != "development" && env != "local" {
+			panic("API_KEY_SECRET is required outside dev environments")
+		}
 		secret = "dev_secret"
 	}
 

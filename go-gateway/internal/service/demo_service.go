@@ -24,7 +24,10 @@ func NewDemoService(accountRepository domain.AccountRepository, invoiceRepositor
 
 func (s *DemoService) SeedDemo() (*dto.DemoOutput, error) {
 	demoEmail := fmt.Sprintf("demo+%d@gateway.local", time.Now().UnixNano())
-	account := domain.NewAccount(demoAccountName, demoEmail)
+	account, err := domain.NewAccount(demoAccountName, demoEmail)
+	if err != nil {
+		return nil, err
+	}
 	if err := s.accountRepository.Save(account); err != nil {
 		return nil, err
 	}
@@ -67,7 +70,7 @@ func (s *DemoService) seedInvoices(account *domain.Account) error {
 		{amount: 5120.00, description: "Upgrade corporativo", status: domain.StatusRejected, daysAgo: 1},
 	}
 
-	approvedTotal := 0.0
+	var approvedTotalCents int64
 	for _, seed := range seeds {
 		card := domain.CreditCard{
 			Number:         "4242424242424242",
@@ -77,9 +80,10 @@ func (s *DemoService) seedInvoices(account *domain.Account) error {
 			CardholderName: "Demo User",
 		}
 
+		amountCents := domain.AmountToCents(seed.amount)
 		invoice, err := domain.NewInvoice(
 			account.ID,
-			seed.amount,
+			amountCents,
 			seed.description,
 			"credit_card",
 			card,
@@ -103,13 +107,13 @@ func (s *DemoService) seedInvoices(account *domain.Account) error {
 		}
 
 		if seed.status == domain.StatusApproved {
-			approvedTotal += seed.amount
+			approvedTotalCents += amountCents
 		}
 	}
 
-	if approvedTotal > 0 {
-		account.AddBalance(approvedTotal)
-		if err := s.accountRepository.AddBalance(account.ID, approvedTotal); err != nil {
+	if approvedTotalCents > 0 {
+		account.AddBalance(approvedTotalCents)
+		if err := s.accountRepository.AddBalance(account.ID, approvedTotalCents); err != nil {
 			return err
 		}
 	}

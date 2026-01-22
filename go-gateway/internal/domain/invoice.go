@@ -7,6 +7,10 @@ import (
 	"github.com/google/uuid"
 )
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 type Status string
 
 const (
@@ -15,10 +19,12 @@ const (
 	StatusRejected Status = "rejected"
 )
 
+const pendingThresholdCents int64 = 10000 * centsFactor
+
 type Invoice struct {
 	ID             string
 	AccountID      string
-	Amount         float64
+	AmountCents    int64
 	Status         Status
 	Description    string
 	PaymentType    string
@@ -35,8 +41,8 @@ type CreditCard struct {
 	CardholderName string
 }
 
-func NewInvoice(accountID string, amount float64, description string, paymentType string, card CreditCard) (*Invoice, error) {
-	if amount <= 0 {
+func NewInvoice(accountID string, amountCents int64, description string, paymentType string, card CreditCard) (*Invoice, error) {
+	if amountCents <= 0 {
 		return nil, ErrInvalidAmount
 	}
 
@@ -49,7 +55,7 @@ func NewInvoice(accountID string, amount float64, description string, paymentTyp
 	return &Invoice{
 		ID:             uuid.New().String(),
 		AccountID:      accountID,
-		Amount:         amount,
+		AmountCents:    amountCents,
 		Status:         StatusPending,
 		Description:    description,
 		PaymentType:    paymentType,
@@ -60,14 +66,13 @@ func NewInvoice(accountID string, amount float64, description string, paymentTyp
 }
 
 func (i *Invoice) Process() error {
-	if i.Amount > 10000 {
+	if i.AmountCents > pendingThresholdCents {
 		return nil
 	}
 
-	randomSource := rand.New(rand.NewSource(time.Now().Unix()))
 	var newStatus Status
 
-	if randomSource.Float64() <= 0.7 {
+	if rand.Float64() <= 0.7 {
 		newStatus = StatusApproved
 	} else {
 		newStatus = StatusRejected
@@ -78,6 +83,9 @@ func (i *Invoice) Process() error {
 }
 
 func (i *Invoice) UpdateStatus(newStatus Status) error {
+	if i.Status == newStatus {
+		return nil
+	}
 	if i.Status != StatusPending {
 		return ErrInvalidStatus
 	}

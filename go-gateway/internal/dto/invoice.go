@@ -45,9 +45,11 @@ func ToInvoice(input CreateInvoiceInput, accountID string) (*domain.Invoice, err
 		CardholderName: input.CardholderName,
 	}
 
+	amountCents := domain.AmountToCents(input.Amount)
+
 	return domain.NewInvoice(
 		accountID,
-		input.Amount,
+		amountCents,
 		input.Description,
 		input.PaymentType,
 		card,
@@ -58,7 +60,7 @@ func FromInvoice(invoice *domain.Invoice) *InvoiceOutput {
 	return &InvoiceOutput{
 		ID:             invoice.ID,
 		AccountID:      invoice.AccountID,
-		Amount:         invoice.Amount,
+		Amount:         domain.CentsToAmount(invoice.AmountCents),
 		Status:         string(invoice.Status),
 		Description:    invoice.Description,
 		PaymentType:    invoice.PaymentType,

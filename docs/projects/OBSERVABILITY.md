@@ -21,11 +21,14 @@ Logs:
 
 ## Antifraude (NestJS)
 
-Endpoint:
+Endpoints:
 
-- `GET /metrics`
+- `GET /metrics` (HTTP app, porta 3001)
+- `GET /metrics` (worker Kafka, porta 3101)
 
-Payload exemplo:
+O worker Kafka concentra os contadores de processamento.
+
+Payload exemplo (worker Kafka):
 
 ```json
 {

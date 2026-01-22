@@ -24,7 +24,9 @@ Env flags:
 
 - `GATEWAY_PORT` (default: 8080)
 - `ANTIFRAUD_PORT` (default: 3001)
+- `ANTIFRAUD_WORKER_PORT` (default: 3101)
 - `FRONTEND_PORT` (default: 3000)
+- `START_ANTIFRAUD_WORKER=true` (start Kafka consumer worker; default: true)
 - `SKIP_INFRA=true` (do not start Docker infra)
 - `FORCE_KILL_PORTS=true` (free occupied ports)
 - `STOP_INFRA_ON_EXIT=true` (stop infra on exit)
@@ -49,6 +51,7 @@ docker compose -f docker-compose.infra.yaml up -d
 - Gateway metrics: http://localhost:8080/metrics
 - Antifraude API: http://localhost:3001
 - Antifraude metrics: http://localhost:3001/metrics
+- Antifraude worker metrics: http://localhost:3101/metrics
 - Kafka: localhost:9092
 - Postgres gateway: localhost:5434
 - Postgres antifraude: localhost:5433
@@ -88,6 +91,7 @@ docker compose -f docker-compose.infra.yaml up -d
 - Gateway consumes results, updates status, and applies balance updates.
 - Dedup is stored in `processed_events`.
 - DLQ: `transactions_result_dlq`.
+- Kafka consumer runs in a separate worker process in dev.
 
 ## Critical gotchas
 

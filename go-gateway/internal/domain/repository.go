@@ -6,7 +6,7 @@ type AccountRepository interface {
 	FindByEmail(email string) (*Account, error)
 	FindByID(id string) (*Account, error)
 	UpdateBalance(account *Account) error
-	AddBalance(accountID string, amount float64) error
+	AddBalance(accountID string, amountCents int64) error
 }
 
 type InvoiceRepository interface {
@@ -14,4 +14,5 @@ type InvoiceRepository interface {
 	FindByID(id string) (*Invoice, error)
 	FindByAccountID(accountID string) ([]*Invoice, error)
 	UpdateStatus(invoice *Invoice) error
+	ApplyTransactionResult(invoiceID string, status Status) error
 }

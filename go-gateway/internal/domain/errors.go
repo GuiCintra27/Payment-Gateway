@@ -14,7 +14,7 @@ var (
 	// ErrUnauthorizedAccess é retornado quando há tentativa de acesso não autorizado a um recurso.
 	ErrUnauthorizedAccess = errors.New("unauthorized access")
 
-	ErrInvalidAmount = errors.New("invalid amount")
-	ErrInvalidStatus = errors.New("invalid status")
+	ErrInvalidAmount     = errors.New("invalid amount")
+	ErrInvalidStatus     = errors.New("invalid status")
 	ErrInvalidCardNumber = errors.New("invalid card number")
 )

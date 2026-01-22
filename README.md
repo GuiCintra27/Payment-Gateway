@@ -22,7 +22,9 @@ Variaveis uteis:
 
 - `GATEWAY_PORT` (padrao: 8080)
 - `ANTIFRAUD_PORT` (padrao: 3001)
+- `ANTIFRAUD_WORKER_PORT` (padrao: 3101)
 - `FRONTEND_PORT` (padrao: 3000)
+- `START_ANTIFRAUD_WORKER=true` para subir o consumer Kafka do antifraude (padrao: true)
 - `SKIP_INFRA=true` para nao subir Postgres/Kafka via Docker
 - `FORCE_KILL_PORTS=true` para liberar portas ocupadas
 - `STOP_INFRA_ON_EXIT=true` para derrubar infra ao sair
@@ -63,6 +65,13 @@ npx prisma migrate dev
 npm run start:dev
 ```
 
+Em outro terminal, inicie o worker Kafka:
+
+```bash
+cd nestjs-anti-fraud
+npm run start:kafka:dev
+```
+
 ```bash
 cd next-frontend
 cp .env.example .env.local
@@ -85,6 +94,7 @@ docker compose -f docker-compose.infra.yaml down
 - Gateway metrics: http://localhost:8080/metrics
 - Antifraude API: http://localhost:3001
 - Antifraude metrics: http://localhost:3001/metrics
+- Antifraude worker metrics: http://localhost:3101/metrics
 - Postgres gateway: localhost:5434
 - Postgres antifraude: localhost:5433
 - Kafka: localhost:9092

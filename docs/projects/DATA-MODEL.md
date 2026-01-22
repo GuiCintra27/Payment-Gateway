@@ -8,7 +8,7 @@
 - `name` (varchar)
 - `email` (unique)
 - `api_key` (unique, HMAC hash)
-- `balance` (decimal)
+- `balance_cents` (bigint)
 - `created_at`, `updated_at`
 
 Indexes:
@@ -20,7 +20,7 @@ Indexes:
 
 - `id` (uuid, pk)
 - `account_id` (fk -> accounts.id)
-- `amount` (decimal)
+- `amount_cents` (bigint)
 - `status` (pending | approved | rejected)
 - `description` (text)
 - `payment_type` (credit_card | boleto)

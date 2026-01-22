@@ -1,4 +1,4 @@
-# Relatorio - Bugs corrigidos (Gateway + Antifraude)
+# Relatorio - Bugs corrigidos (Gateway + Antifraude) - 2026/01/22
 
 Objetivo: registrar os bugs confirmados, a correção aplicada e o motivo tecnico da escolha.
 
@@ -8,14 +8,16 @@ Objetivo: registrar os bugs confirmados, a correção aplicada e o motivo tecnic
 O fluxo de `start-dev.sh` iniciava apenas o HTTP do NestJS. O consumer Kafka nao era iniciado, entao mensagens `pending_transactions` ficavam sem processamento.
 
 **Correção aplicada**  
-Inicializar o microservice Kafka no mesmo processo do HTTP (`main.ts`) e padronizar o broker no comando dedicado (`kafka.cmd.ts`) usando `KAFKA_BROKER`.
+Mover o Kafka consumer para um worker separado e garantir que o `start-dev.sh` suba esse worker por padrao (`START_ANTIFRAUD_WORKER=true`).
 
 **Por que e uma boa ideia**  
-Garantia de que o antifraude roda completo no dev, sem exigir um processo separado. Reduz falhas de setup e elimina pendencias silenciosas no fluxo de aprovacao.
+Garante isolamento entre HTTP e processamento assíncrono, e evita que o fluxo de antifraude fique parado no dev. O setup continua simples e mais proximo de producao.
 
 Arquivos:
+
 - `nestjs-anti-fraud/src/main.ts`
 - `nestjs-anti-fraud/src/cmd/kafka.cmd.ts`
+- `start-dev.sh`
 
 ## 2) Duplicidade de eventos gerava erro e reprocessamento
 
@@ -29,6 +31,7 @@ Tornar o processamento idempotente: se a invoice ja existe, retorna o resultado 
 Kafka pode entregar mensagens duplicadas. Idempotencia e a abordagem mais comum em sistemas distribuidos e evita reprocessamentos e DLQ desnecessarios.
 
 Arquivo:
+
 - `nestjs-anti-fraud/src/invoices/fraud/fraud.service.ts`
 
 ## 3) Atualizacao de saldo concorrente podia sobrescrever valores
@@ -43,6 +46,7 @@ Criado `AddBalance(accountID, amount)` no repository para atualizar saldo de for
 Mantem consistencia em concorrencia sem exigir lock no application layer. E o padrao mais seguro para somas financeiras em banco.
 
 Arquivos:
+
 - `go-gateway/internal/repository/account_repository.go`
 - `go-gateway/internal/service/account_service.go`
 - `go-gateway/internal/service/demo_service.go`
@@ -60,4 +64,5 @@ Reordenar a criacao: salvar a invoice primeiro e so depois publicar evento/atual
 Reduz inconsistencia sem adicionar complexidade (outbox). Mantem o fluxo simples e mais correto para o nivel do projeto.
 
 Arquivo:
+
 - `go-gateway/internal/service/invoice_service.go`

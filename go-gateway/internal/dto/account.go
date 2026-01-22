@@ -24,7 +24,7 @@ type AccountOutput struct {
 }
 
 // ToAccount converte CreateAccountInput para domain.Account
-func ToAccount(input CreateAccountInput) *domain.Account {
+func ToAccount(input CreateAccountInput) (*domain.Account, error) {
 	return domain.NewAccount(input.Name, input.Email)
 }
 
@@ -34,7 +34,7 @@ func FromAccount(account *domain.Account) AccountOutput {
 		ID:        account.ID,
 		Name:      account.Name,
 		Email:     account.Email,
-		Balance:   account.Balance,
+		Balance:   domain.CentsToAmount(account.BalanceCents),
 		APIKey:    account.APIKey,
 		CreatedAt: account.CreatedAt,
 		UpdatedAt: account.UpdatedAt,
