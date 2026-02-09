@@ -11,18 +11,30 @@ interface StatusBadgeProps {
 const statusConfig = {
   approved: {
     text: "Aprovado",
-    variant: "success" as const,
     icon: CheckCircle2,
+    style: {
+      borderColor: "var(--success-border)",
+      backgroundColor: "var(--success-bg)",
+      color: "var(--success-text)",
+    },
   },
   pending: {
     text: "Pendente",
-    variant: "warning" as const,
     icon: Clock,
+    style: {
+      borderColor: "var(--warning-border)",
+      backgroundColor: "var(--warning-bg)",
+      color: "var(--warning-text)",
+    },
   },
   rejected: {
     text: "Rejeitado",
-    variant: "destructive" as const,
     icon: XCircle,
+    style: {
+      borderColor: "var(--danger-border)",
+      backgroundColor: "var(--danger-bg)",
+      color: "var(--danger-text)",
+    },
   },
 }
 
@@ -32,8 +44,9 @@ export function StatusBadge({ status, showIcon = true }: StatusBadgeProps) {
 
   return (
     <Badge
-      variant={config.variant}
+      variant="outline"
       className="uppercase tracking-[0.18em] text-[10px] font-semibold"
+      style={config.style}
     >
       {showIcon && <Icon className="size-3" />}
       {config.text}
