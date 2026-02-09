@@ -12,6 +12,12 @@ Variaveis uteis:
 - `FORCE_KILL_PORTS=true` (libera portas automaticamente)
 - `STOP_INFRA_ON_EXIT=true` (derruba infra ao sair)
 - `ANTIFRAUD_WORKER_PORT=3101` (porta do worker/metrics)
+- `AUTO_PORTS=true` (escolhe a proxima porta livre automaticamente)
+- `LOG_TO_FILE=true` (salva logs em arquivo)
+- `LOG_DIR=./.logs` (pasta dos logs quando `LOG_TO_FILE=true`)
+- `INFRA_START_TIMEOUT=60` (timeout para Kafka/Postgres)
+- `SERVICE_START_TIMEOUT=25` (timeout para APIs/Frontend)
+- `KAFKA_REQUIRED=true` (falha se Kafka nao estiver disponivel com o worker ativo)
 
 ## Subir tudo via Docker
 

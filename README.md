@@ -28,6 +28,12 @@ Variaveis uteis:
 - `SKIP_INFRA=true` para nao subir Postgres/Kafka via Docker
 - `FORCE_KILL_PORTS=true` para liberar portas ocupadas
 - `STOP_INFRA_ON_EXIT=true` para derrubar infra ao sair
+- `AUTO_PORTS=true` para escolher automaticamente a proxima porta livre
+- `LOG_TO_FILE=true` grava logs em arquivos (padrao: false)
+- `LOG_DIR=./.logs` pasta dos logs quando `LOG_TO_FILE=true`
+- `INFRA_START_TIMEOUT=60` timeout (s) para Kafka/Postgres
+- `SERVICE_START_TIMEOUT=25` timeout (s) para APIs/Frontend
+- `KAFKA_REQUIRED=true` falha se Kafka nao estiver disponivel quando o worker estiver ativo
 
 ### Opcao 2: tudo via Docker
 
