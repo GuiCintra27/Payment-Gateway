@@ -36,6 +36,7 @@ declare -a PROCESS_PIDS=()
 declare -a PROCESS_PGIDS=()
 declare -a PROCESS_NAMES=()
 declare -a PROCESS_LOGS=()
+declare -A RESERVED_PORTS=()
 
 log_info() {
   echo -e "${BLUE}[INFO]${NC} $1"
@@ -127,10 +128,11 @@ kill_pids_gracefully() {
 
 find_free_port() {
   local base="$1"
-  local max_tries="${2:-20}"
+  local owner="$2"
+  local max_tries="${3:-20}"
   local port="${base}"
   for _ in $(seq 0 "${max_tries}"); do
-    if is_port_free "${port}"; then
+    if is_port_available_for_owner "${port}" "${owner}"; then
       echo "${port}"
       return 0
     fi
@@ -139,36 +141,106 @@ find_free_port() {
   return 1
 }
 
+reserve_port() {
+  local owner="$1"
+  local port="$2"
+  RESERVED_PORTS["${port}"]="${owner}"
+}
+
+release_port() {
+  local owner="$1"
+  local port="$2"
+  if [ "${RESERVED_PORTS["${port}"]:-}" = "${owner}" ]; then
+    unset "RESERVED_PORTS[${port}]"
+  fi
+}
+
+is_reserved_by_other_owner() {
+  local port="$1"
+  local owner="$2"
+  local reserved_owner="${RESERVED_PORTS["${port}"]:-}"
+  [ -n "${reserved_owner}" ] && [ "${reserved_owner}" != "${owner}" ]
+}
+
+is_port_available_for_owner() {
+  local port="$1"
+  local owner="$2"
+  if is_reserved_by_other_owner "${port}" "${owner}"; then
+    return 1
+  fi
+  is_port_free "${port}"
+}
+
 resolve_port() {
   local var="$1"
   local name="$2"
+  local owner="$3"
   local port="${!var}"
 
-  if is_port_free "${port}"; then
+  if is_port_available_for_owner "${port}" "${owner}"; then
+    reserve_port "${owner}" "${port}"
     return 0
   fi
 
   local pids
   pids="$(port_pids "${port}")"
 
-  if [ -n "${pids}" ] && [ "${FORCE_KILL_PORTS}" = "true" ]; then
+  if [ -n "${pids}" ] && [ "${FORCE_KILL_PORTS}" = "true" ] && ! is_reserved_by_other_owner "${port}" "${owner}"; then
     log_warn "Port ${port} in use for ${name}. Killing processes: ${pids}"
     kill_pids_gracefully ${pids}
   fi
 
-  if is_port_free "${port}"; then
+  if is_port_available_for_owner "${port}" "${owner}"; then
+    reserve_port "${owner}" "${port}"
     return 0
   fi
 
   if [ "${AUTO_PORTS}" = "true" ]; then
     local new_port
-    new_port="$(find_free_port "${port}" 50)" || die "No free port found for ${name} starting at ${port}."
+    new_port="$(find_free_port "${port}" "${owner}" 50)" || die "No free port found for ${name} starting at ${port}."
     log_warn "Port ${port} busy for ${name}. Using ${new_port} instead."
     printf -v "${var}" "%s" "${new_port}"
+    reserve_port "${owner}" "${new_port}"
     return 0
   fi
 
   die "Port ${port} is busy for ${name}. Stop it or set FORCE_KILL_PORTS=true (or AUTO_PORTS=true)."
+}
+
+revalidate_port_before_start() {
+  local var="$1"
+  local name="$2"
+  local owner="$3"
+  local port="${!var}"
+
+  if is_port_available_for_owner "${port}" "${owner}"; then
+    reserve_port "${owner}" "${port}"
+    return 0
+  fi
+
+  local pids
+  pids="$(port_pids "${port}")"
+  if [ -n "${pids}" ] && [ "${FORCE_KILL_PORTS}" = "true" ] && ! is_reserved_by_other_owner "${port}" "${owner}"; then
+    log_warn "Port ${port} became busy for ${name}. Killing processes: ${pids}"
+    kill_pids_gracefully ${pids}
+  fi
+
+  if is_port_available_for_owner "${port}" "${owner}"; then
+    reserve_port "${owner}" "${port}"
+    return 0
+  fi
+
+  if [ "${AUTO_PORTS}" = "true" ]; then
+    local new_port
+    new_port="$(find_free_port "${port}" "${owner}" 100)" || die "No free port found for ${name} during startup."
+    release_port "${owner}" "${port}"
+    reserve_port "${owner}" "${new_port}"
+    printf -v "${var}" "%s" "${new_port}"
+    log_warn "${name} port switched to ${new_port} during startup (port ${port} became busy)."
+    return 0
+  fi
+
+  die "Port ${port} became busy for ${name} during startup."
 }
 
 wait_for_port() {
@@ -212,16 +284,16 @@ start_process() {
 
   if command -v setsid >/dev/null 2>&1; then
     if [ -n "${log_file}" ]; then
-      setsid bash -lc "${cmd}" >> "${log_file}" 2>&1 &
+      setsid bash -c "${cmd}" >> "${log_file}" 2>&1 &
     else
-      setsid bash -lc "${cmd}" &
+      setsid bash -c "${cmd}" &
     fi
     pgid="$!"
   else
     if [ -n "${log_file}" ]; then
-      bash -lc "${cmd}" >> "${log_file}" 2>&1 &
+      bash -c "${cmd}" >> "${log_file}" 2>&1 &
     else
-      bash -lc "${cmd}" &
+      bash -c "${cmd}" &
     fi
   fi
 
@@ -318,12 +390,14 @@ else
   die "docker compose not found."
 fi
 
-resolve_port GATEWAY_PORT "API Gateway"
-resolve_port ANTIFRAUD_PORT "Anti-fraud"
+resolve_port GATEWAY_PORT "API Gateway" "gateway"
+resolve_port ANTIFRAUD_PORT "Anti-fraud" "antifraud"
 if [ "${START_ANTIFRAUD_WORKER}" = "true" ]; then
-  resolve_port ANTIFRAUD_WORKER_PORT "Anti-fraud worker"
+  resolve_port ANTIFRAUD_WORKER_PORT "Anti-fraud worker" "antifraud-worker"
 fi
-resolve_port FRONTEND_PORT "Frontend"
+resolve_port FRONTEND_PORT "Frontend" "frontend"
+
+log_info "Ports selected: gateway=${GATEWAY_PORT}, antifraud=${ANTIFRAUD_PORT}, worker=${ANTIFRAUD_WORKER_PORT}, frontend=${FRONTEND_PORT}"
 
 if [ "${SKIP_INFRA}" != "true" ]; then
   if ${COMPOSE_CMD} -f "${ROOT_DIR}/docker-compose.infra.yaml" ps 2>/dev/null | grep -E "(gateway-db|nestjs-db|kafka)" | grep -E "Up|running" >/dev/null; then
@@ -352,11 +426,13 @@ else
 fi
 
 log_info "Starting API Gateway (Go)..."
+revalidate_port_before_start GATEWAY_PORT "API Gateway" "gateway"
 start_process "gateway" "cd \"${ROOT_DIR}/go-gateway\" && go run cmd/app/main.go"
 wait_for_port 127.0.0.1 "${GATEWAY_PORT}" "Gateway API" "${SERVICE_START_TIMEOUT}" || exit 1
 echo -e "${GREEN}[OK]${NC} Gateway running at http://localhost:${GATEWAY_PORT}"
 
 log_info "Starting Anti-fraud (NestJS)..."
+revalidate_port_before_start ANTIFRAUD_PORT "Anti-fraud" "antifraud"
 start_process "antifraud" "cd \"${ROOT_DIR}/nestjs-anti-fraud\" && if [ ! -d \"node_modules\" ]; then echo '[INFO] Installing antifraud dependencies...'; npm install; fi && if [ -f \".env.local\" ]; then set -a; . ./.env.local; set +a; fi && npx prisma migrate dev && PORT=\"${ANTIFRAUD_PORT}\" npm run start:dev"
 wait_for_port 127.0.0.1 "${ANTIFRAUD_PORT}" "Anti-fraud API" "${SERVICE_START_TIMEOUT}" || exit 1
 echo -e "${GREEN}[OK]${NC} Antifraud running at http://localhost:${ANTIFRAUD_PORT}"
@@ -379,6 +455,7 @@ if [ "${START_ANTIFRAUD_WORKER}" = "true" ]; then
 fi
 
 if [ "${START_ANTIFRAUD_WORKER}" = "true" ]; then
+  revalidate_port_before_start ANTIFRAUD_WORKER_PORT "Anti-fraud worker" "antifraud-worker"
   start_process "antifraud-worker" "cd \"${ROOT_DIR}/nestjs-anti-fraud\" && if [ ! -d \"node_modules\" ]; then echo '[INFO] Installing antifraud dependencies...'; npm install; fi && if [ -f \".env.local\" ]; then set -a; . ./.env.local; set +a; fi && ANTIFRAUD_WORKER_PORT=\"${ANTIFRAUD_WORKER_PORT}\" npm run start:kafka:dev"
   wait_for_port 127.0.0.1 "${ANTIFRAUD_WORKER_PORT}" "Anti-fraud worker metrics" "${SERVICE_START_TIMEOUT}" || exit 1
   echo -e "${GREEN}[OK]${NC} Antifraud worker running (Kafka consumer)"
@@ -387,6 +464,7 @@ else
 fi
 
 log_info "Starting Frontend (Next.js)..."
+revalidate_port_before_start FRONTEND_PORT "Frontend" "frontend"
 start_process "frontend" "cd \"${ROOT_DIR}/next-frontend\" && if [ ! -d \"node_modules\" ]; then echo '[INFO] Installing frontend dependencies...'; npm install; fi && PORT=\"${FRONTEND_PORT}\" npm run dev -- --hostname 0.0.0.0 --port \"${FRONTEND_PORT}\""
 wait_for_port 127.0.0.1 "${FRONTEND_PORT}" "Frontend" "${SERVICE_START_TIMEOUT}" || exit 1
 echo -e "${GREEN}[OK]${NC} Frontend running at http://localhost:${FRONTEND_PORT}"
