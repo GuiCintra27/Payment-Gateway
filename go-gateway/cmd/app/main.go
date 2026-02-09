@@ -1,3 +1,9 @@
+// @title Payment Gateway API
+// @version 1.0
+// @description Gateway API para contas e transferencias com antifraude assincrono.
+// @host localhost:8080
+// @BasePath /
+// @schemes http
 package main
 
 import (
@@ -7,7 +13,10 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
+	_ "github.com/GuiCintra27/payment-gateway/go-gateway/docs"
+	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/outbox"
 	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/repository"
 	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/service"
 	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/web/handlers"
@@ -15,6 +24,7 @@ import (
 	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/web/server"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/segmentio/kafka-go"
 )
 
 // getEnv retorna variável de ambiente ou valor padrão se não definida
@@ -69,6 +79,7 @@ func main() {
 	invoiceService := service.NewInvoiceService(invoiceRepository, *accountService, kafkaProducer)
 	demoService := service.NewDemoService(accountRepository, invoiceRepository)
 	healthHandler := handlers.NewHealthHandler(db, baseKafkaConfig.Brokers)
+	idempotencyRepository := repository.NewIdempotencyRepository(db)
 
 	ratePerMinute, err := strconv.Atoi(getEnv("API_RATE_LIMIT_PER_MINUTE", "60"))
 	if err != nil {
@@ -110,9 +121,20 @@ func main() {
 		}
 	}()
 
+	// Inicia o worker de outbox para publicar eventos pendentes
+	outboxRepo := outbox.NewRepository(db)
+	outboxWriter := &kafka.Writer{
+		Addr:     kafka.TCP(baseKafkaConfig.Brokers...),
+		Topic:    producerTopic,
+		Balancer: &kafka.LeastBytes{},
+	}
+	defer outboxWriter.Close()
+	outboxWorker := outbox.NewWorker(outboxRepo, outboxWriter, 500*time.Millisecond, 10, 5)
+	go outboxWorker.Start(context.Background())
+
 	// Configura e inicia o servidor HTTP
 	port := getEnv("HTTP_PORT", "8080")
-	srv := server.NewServer(accountService, invoiceService, demoService, healthHandler, rateLimitMiddleware, port)
+	srv := server.NewServer(accountService, invoiceService, idempotencyRepository, demoService, healthHandler, rateLimitMiddleware, port)
 	srv.ConfigureRoutes()
 
 	if err := srv.Start(); err != nil {

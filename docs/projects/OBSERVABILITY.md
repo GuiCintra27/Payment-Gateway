@@ -18,6 +18,7 @@ Logs:
 
 - `slog` com `request_id`, status, duracao e bytes.
 - `X-Request-Id` pode ser enviado pelo cliente.
+- `X-Request-Id` e propagado para o Kafka via header `x-request-id`.
 
 ## Antifraude (NestJS)
 
@@ -27,6 +28,11 @@ Endpoints:
 - `GET /metrics` (worker Kafka, porta 3101)
 
 O worker Kafka concentra os contadores de processamento.
+
+Correlation ID:
+
+- O worker le `x-request-id` dos headers Kafka e inclui nos logs.
+- O resultado publicado em `transactions_result` replica o mesmo header.
 
 Payload exemplo (worker Kafka):
 

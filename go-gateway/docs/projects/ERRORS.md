@@ -23,4 +23,6 @@ Formato padrao:
 - `invoice_not_found` (404)
 - `invoice_id_required` (400)
 - `forbidden` (403)
+- `idempotency_conflict` (409)
+- `idempotency_in_progress` (409)
 - `internal_error` (500)

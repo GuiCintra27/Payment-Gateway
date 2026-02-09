@@ -12,6 +12,11 @@
 - Rate limit por API key no gateway.
 - Configuracao via `API_RATE_LIMIT_PER_MINUTE` e `API_RATE_LIMIT_BURST`.
 
+## CORS e headers
+
+- CORS restrito via `CORS_ALLOWED_ORIGINS`.
+- Headers de seguranca no gateway: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`.
+
 ## Cookies (frontend)
 
 - `apiKey`: cookie httpOnly para autenticacao.

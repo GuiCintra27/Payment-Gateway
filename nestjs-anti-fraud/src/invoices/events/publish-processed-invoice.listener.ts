@@ -17,18 +17,26 @@ export class PublishProcessedInvoiceListener implements OnModuleInit {
 
   @OnEvent('invoice.processed')
   async handle(event: InvoiceProcessedEvent) {
+    const headers = event.requestId
+      ? [{ key: 'x-request-id', value: Buffer.from(event.requestId) }]
+      : undefined;
+
     await this.kafkaProducer.send({
       topic: 'transactions_result',
       messages: [
         {
           value: JSON.stringify({
+            schema_version: 2,
             event_id: event.event_id,
             invoice_id: event.invoice.id,
             status: event.fraudResult.hasFraud ? 'rejected' : 'approved',
           }),
+          headers,
         },
       ],
     });
-    this.logger.log(`Invoice ${event.invoice.id} processed event published`);
+    this.logger.log(
+      `Invoice ${event.invoice.id} processed event published request_id=${event.requestId || '-'}`,
+    );
   }
 }

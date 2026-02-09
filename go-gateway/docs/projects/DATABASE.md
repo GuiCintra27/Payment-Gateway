@@ -6,14 +6,14 @@
 - `name`
 - `email` (unique)
 - `api_key` (unique, HMAC hash)
-- `balance`
+- `balance_cents`
 - `created_at`, `updated_at`
 
 ## invoices
 
 - `id` (uuid, pk)
 - `account_id` (fk)
-- `amount`
+- `amount_cents`
 - `status`
 - `description`
 - `payment_type`
@@ -26,7 +26,31 @@
 - `invoice_id`
 - `processed_at`
 
+## idempotency_keys
+
+- `id` (uuid, pk)
+- `key` (unique com `endpoint`)
+- `endpoint`
+- `request_hash`
+- `response_body`
+- `status_code`
+- `status`
+- `created_at`, `updated_at`, `expires_at`
+
+## outbox_events
+
+- `id` (uuid, pk)
+- `aggregate_id` (invoice_id)
+- `type`
+- `payload`
+- `status` (pending/processing/sent/failed)
+- `attempts`, `next_attempt_at`
+- `correlation_id`
+- `created_at`, `updated_at`
+
 ## Migrations
 
 - `000001_create_accounts_table.up.sql`
 - `000002_create_processed_events.up.sql`
+- `000003_convert_money_to_cents.up.sql`
+- `000004_add_idempotency_and_outbox.up.sql`

@@ -20,8 +20,18 @@ func NewAccountHandler(accountService *service.AccountService) *AccountHandler {
 	return &AccountHandler{accountService: accountService}
 }
 
-// Create processa POST /accounts
-// Retorna 201 Created ou erro 400/500
+// Create cria uma conta e retorna a API key.
+// @Summary Criar conta
+// @Tags accounts
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateAccountInput true "Account payload"
+// @Success 201 {object} dto.AccountOutput
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 409 {object} response.ErrorResponse
+// @Failure 422 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /accounts [post]
 func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var input dto.CreateAccountInput
 	decoder := json.NewDecoder(r.Body)
@@ -54,8 +64,15 @@ func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusCreated, output)
 }
 
-// Get processa GET /accounts
-// Requer X-API-Key no header
+// Get retorna dados da conta via API key.
+// @Summary Buscar conta
+// @Tags accounts
+// @Produce json
+// @Param X-API-KEY header string true "API key"
+// @Success 200 {object} dto.AccountOutput
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /accounts [get]
 func (h *AccountHandler) Get(w http.ResponseWriter, r *http.Request) {
 	apiKey := r.Header.Get("X-API-KEY")
 	if apiKey == "" {

@@ -8,6 +8,9 @@
   - `account_id`
   - `invoice_id`
   - `amount`
+  - `amount_cents` (preferido quando presente)
+  - `schema_version`
+  - Header `x-request-id` (correlation)
 
 ## Fluxo
 

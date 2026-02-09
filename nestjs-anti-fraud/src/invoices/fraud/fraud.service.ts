@@ -17,7 +17,8 @@ export class FraudService {
   ) {}
 
   async processInvoice(processInvoiceFraudDto: ProcessInvoiceFraudDto) {
-    const { invoice_id, account_id, amount, event_id } = processInvoiceFraudDto;
+    const { invoice_id, account_id, amount, amountCents, event_id, requestId } =
+      processInvoiceFraudDto;
 
     return this.prismaService.$transaction(async (prisma) => {
       const foundInvoice = await prisma.invoice.findUnique({
@@ -48,7 +49,8 @@ export class FraudService {
 
       const fraudResult = await this.fraudAggregateSpec.detectFraud({
         account,
-        amount,
+        amount: amount.toNumber(),
+        amountCents,
         invoiceId: invoice_id,
       });
 
@@ -73,7 +75,7 @@ export class FraudService {
 
       await this.eventEmitter.emitAsync(
         'invoice.processed',
-        new InvoiceProcessedEvent(invoice, fraudResult, event_id),
+        new InvoiceProcessedEvent(invoice, fraudResult, event_id, requestId),
       );
 
       return {

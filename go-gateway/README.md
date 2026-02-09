@@ -54,6 +54,7 @@ Veja `go-gateway/.env.example`:
 - `GET /health`
 - `GET /ready`
 - `GET /metrics`
+- `GET /swagger/index.html`
 
 ## Documentacao
 

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/domain/events"
+	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/telemetry"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -85,8 +86,14 @@ func (s *KafkaProducer) SendingPendingTransaction(ctx context.Context, event eve
 		return err
 	}
 
+	var headers []kafka.Header
+	if requestID := telemetry.RequestIDFromContext(ctx); requestID != "" {
+		headers = append(headers, kafka.Header{Key: "x-request-id", Value: []byte(requestID)})
+	}
+
 	msg := kafka.Message{
-		Value: value,
+		Value:   value,
+		Headers: headers,
 	}
 
 	slog.Info("enviando mensagem para o kafka",
@@ -222,10 +229,13 @@ func (c *KafkaConsumer) Consume(ctx context.Context) error {
 			continue
 		}
 
+		requestID := getHeader(msg.Headers, "x-request-id")
+
 		slog.Info("transação processada com sucesso",
 			"invoice_id", result.InvoiceID,
 			"event_id", result.EventID,
-			"status", result.Status)
+			"status", result.Status,
+			"request_id", requestID)
 
 		c.commitMessage(ctx, msg)
 	}
@@ -237,6 +247,15 @@ func (c *KafkaConsumer) Close() error {
 		_ = c.dlqWriter.Close()
 	}
 	return c.reader.Close()
+}
+
+func getHeader(headers []kafka.Header, key string) string {
+	for _, header := range headers {
+		if strings.EqualFold(header.Key, key) {
+			return string(header.Value)
+		}
+	}
+	return ""
 }
 
 func (c *KafkaConsumer) commitMessage(ctx context.Context, msg kafka.Message) {

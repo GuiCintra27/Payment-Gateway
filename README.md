@@ -97,6 +97,7 @@ docker compose -f docker-compose.infra.yaml down
 - Frontend (local script): http://localhost:3000
 - Frontend (docker compose): http://localhost:3002
 - Gateway API: http://localhost:8080
+- Swagger: http://localhost:8080/swagger/index.html
 - Gateway metrics: http://localhost:8080/metrics
 - Antifraude API: http://localhost:3001
 - Antifraude metrics: http://localhost:3001/metrics
@@ -133,6 +134,10 @@ Por servico:
 - `go-gateway/README.md` e `go-gateway/docs/projects/*`
 - `nestjs-anti-fraud/README.md` e `nestjs-anti-fraud/docs/projects/*`
 - `next-frontend/README.md` e `next-frontend/docs/projects/*`
+
+## Testes
+
+- E2E (stack completa): `./scripts/e2e.sh`
 
 ## Troubleshooting rapido
 

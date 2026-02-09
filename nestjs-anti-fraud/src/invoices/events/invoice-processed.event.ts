@@ -9,5 +9,6 @@ export class InvoiceProcessedEvent {
       description?: string;
     },
     readonly event_id: string,
+    readonly requestId?: string,
   ) {}
 }

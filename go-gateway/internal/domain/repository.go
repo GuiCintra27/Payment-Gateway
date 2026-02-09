@@ -11,6 +11,7 @@ type AccountRepository interface {
 
 type InvoiceRepository interface {
 	Save(invoice *Invoice) error
+	SaveWithOutbox(invoice *Invoice, eventType string, payload []byte, correlationID string) error
 	FindByID(id string) (*Invoice, error)
 	FindByAccountID(accountID string) ([]*Invoice, error)
 	UpdateStatus(invoice *Invoice) error

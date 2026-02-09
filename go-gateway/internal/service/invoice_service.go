@@ -1,11 +1,10 @@
 package service
 
 import (
-	"context"
-
 	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/domain"
 	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/domain/events"
 	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/dto"
+	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/outbox"
 )
 
 type InvoiceService struct {
@@ -41,25 +40,35 @@ func (s *InvoiceService) Create(input dto.CreateInvoiceInput) (*dto.InvoiceOutpu
 		return nil, err
 	}
 
-	if err := s.invoiceRepository.Save(invoice); err != nil {
-		return nil, err
-	}
-
-	// Se o status for pending, significa que é uma transação de alto valor
+	// Se o status for pending, significa que e uma transacao de alto valor.
 	if invoice.Status == domain.StatusPending {
-		// Criar e publicar evento de transação pendente
 		pendingTransaction := events.NewPendingTransaction(
 			invoice.AccountID,
 			invoice.ID,
 			domain.CentsToAmount(invoice.AmountCents),
+			invoice.AmountCents,
 		)
 
-		if err := s.kafkaProducer.SendingPendingTransaction(context.Background(), *pendingTransaction); err != nil {
+		payload, err := outbox.EncodePayload(pendingTransaction)
+		if err != nil {
+			return nil, err
+		}
+
+		correlationID := ""
+		if requestID, ok := input.Metadata["request_id"]; ok {
+			correlationID = requestID
+		}
+
+		if err := s.invoiceRepository.SaveWithOutbox(invoice, "pending_transaction", payload, correlationID); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := s.invoiceRepository.Save(invoice); err != nil {
 			return nil, err
 		}
 	}
 
-	// Para transações aprovadas, atualizar o saldo
+	// Para transacoes aprovadas, atualizar o saldo
 	if invoice.Status == domain.StatusApproved {
 		_, err = s.accountService.UpdateBalanceByAccountID(invoice.AccountID, invoice.AmountCents)
 		if err != nil {

@@ -22,6 +22,7 @@ type CreateInvoiceInput struct {
 	ExpiryMonth    int     `json:"expiry_month"`
 	ExpiryYear     int     `json:"expiry_year"`
 	CardholderName string  `json:"cardholder_name"`
+	Metadata       map[string]string
 }
 
 type InvoiceOutput struct {

@@ -34,7 +34,7 @@ export class UnusualAmountSpecification implements IFraudSpecification {
 
     if (previousInvoices.length > 0) {
       const totalAmount = previousInvoices.reduce(
-        (sum, invoice) => sum + invoice.amount,
+        (sum, invoice) => sum + invoice.amount.toNumber(),
         0,
       );
       const averageAmount = totalAmount / previousInvoices.length;

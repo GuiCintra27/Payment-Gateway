@@ -15,7 +15,13 @@ func NewDemoHandler(demoService *service.DemoService) *DemoHandler {
 	return &DemoHandler{demoService: demoService}
 }
 
-// Create processa POST /demo
+// Create gera dados de demo.
+// @Summary Gerar demo
+// @Tags demo
+// @Produce json
+// @Success 201 {object} dto.DemoOutput
+// @Failure 500 {object} response.ErrorResponse
+// @Router /demo [post]
 func (h *DemoHandler) Create(w http.ResponseWriter, r *http.Request) {
 	output, err := h.demoService.SeedDemo()
 	if err != nil {

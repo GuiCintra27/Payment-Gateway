@@ -4,10 +4,12 @@ import (
 	"expvar"
 	"net/http"
 
+	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/repository"
 	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/service"
 	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/web/handlers"
 	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/web/middleware"
 	"github.com/go-chi/chi/v5"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 type Server struct {
@@ -15,6 +17,7 @@ type Server struct {
 	server         *http.Server
 	accountService *service.AccountService
 	invoiceService *service.InvoiceService
+	idempotency    *repository.IdempotencyRepository
 	demoService    *service.DemoService
 	healthHandler  *handlers.HealthHandler
 	rateLimit      *middleware.RateLimitMiddleware
@@ -24,6 +27,7 @@ type Server struct {
 func NewServer(
 	accountService *service.AccountService,
 	invoiceService *service.InvoiceService,
+	idempotencyStore *repository.IdempotencyRepository,
 	demoService *service.DemoService,
 	healthHandler *handlers.HealthHandler,
 	rateLimit *middleware.RateLimitMiddleware,
@@ -33,6 +37,7 @@ func NewServer(
 		router:         chi.NewRouter(),
 		accountService: accountService,
 		invoiceService: invoiceService,
+		idempotency:    idempotencyStore,
 		demoService:    demoService,
 		healthHandler:  healthHandler,
 		rateLimit:      rateLimit,
@@ -42,17 +47,20 @@ func NewServer(
 
 func (s *Server) ConfigureRoutes() {
 	accountHandler := handlers.NewAccountHandler(s.accountService)
-	invoiceHandler := handlers.NewInvoiceHandler(s.invoiceService)
+	invoiceHandler := handlers.NewInvoiceHandler(s.invoiceService, s.idempotency)
 	authMiddleware := middleware.NewAuthMiddleware(s.accountService)
 	demoHandler := handlers.NewDemoHandler(s.demoService)
 
 	s.router.Use(middleware.RequestID)
 	s.router.Use(middleware.RequestLogger)
 	s.router.Use(middleware.Metrics)
+	s.router.Use(middleware.SecurityHeaders)
+	s.router.Use(middleware.CORS)
 
 	s.router.Post("/accounts", accountHandler.Create)
 	s.router.Get("/accounts", accountHandler.Get)
 	s.router.Post("/demo", demoHandler.Create)
+	s.router.Get("/swagger/*", httpSwagger.WrapHandler)
 	s.router.Get("/health", s.healthHandler.Liveness)
 	s.router.Get("/ready", s.healthHandler.Readiness)
 	s.router.Handle("/metrics", expvar.Handler())

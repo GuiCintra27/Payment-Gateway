@@ -12,7 +12,7 @@
 
 - `id` (string, pk)
 - `accountId` (fk -> Account)
-- `amount` (float)
+- `amount` (decimal)
 - `status` (APPROVED | REJECTED)
 - `createdAt`, `updatedAt`
 - `fraudHistory` (optional)

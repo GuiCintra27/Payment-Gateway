@@ -3,6 +3,7 @@ import { Account, FraudReason } from '@prisma/client';
 export type FraudSpecificationContext = {
   account: Account;
   amount: number;
+  amountCents: number;
   invoiceId: string;
 };
 

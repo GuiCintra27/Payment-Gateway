@@ -1,112 +1,103 @@
 ## Objetivo
 
-Elevar o projeto para um case de backend pleno, com fluxo de uso mais simples e arquitetura mais robusta, sem inflar demais o escopo.
+Elevar o projeto para um case de backend pleno+, com fluxo de uso mais simples, arquitetura resiliente e sinais claros de engenharia de produto.
 
-## Diagnostico rapido da arquitetura atual
+## Atualizacao do diagnostico (2026-02-09)
 
-- Servicos: frontend (Next.js), gateway (Go), antifraude (Nest.js), Kafka, 2x Postgres.
-- Integracao: gateway publica transacoes e antifraude responde via Kafka.
-- Usuario: login por API Key manual, sem cadastro; fluxo inicial gera frustracao.
-- Operacao: pouca observabilidade, sem health checks no Go, sem padrao de erros, sem idempotencia.
-- Segurança: API key em texto puro, dados de cartao sem mascaramento/validacao forte.
+- Arquitetura atual: frontend (Next.js), gateway (Go), antifraude API + worker (NestJS), Kafka e 2x Postgres.
+- Fluxo principal: gateway cria transacao, publica `pending_transactions` para alto valor, antifraude processa e devolve `transactions_result`.
+- Confiabilidade: deduplicacao por `event_id`, DLQ, retry/backoff, commit de offset apos processamento e aplicacao atomica de resultado no gateway.
+- Seguranca: API key com HMAC, rate limit por API key, CVV nao persistido, fallback de segredo restrito a dev.
+- Observabilidade: health/readiness no gateway, metrics no gateway e antifraude (API + worker), logs estruturados com `request_id`.
+- UX: onboarding com criacao de conta, auto-login, demo mode, welcome com API key exibida uma vez e fluxo inicial mais claro.
+- Gap atual para nivel pleno+: idempotencia HTTP no `POST /invoice`, outbox/inbox para publicar eventos de forma transacional, contrato versionado de eventos, CORS/headers de seguranca, OpenAPI e cobertura de testes de integracao/e2e do fluxo completo.
 
-## Melhorias de arquitetura (prioridade alta)
+## Status do plano original (checklist)
 
 ### 1) Fluxo de uso e primeira impressao
 
-- Criar pagina de "Cadastrar conta" que chama `POST /accounts`.
-- Exibir API Key apenas uma vez com opcao "Copiar" + salvar cookie automaticamente.
-- Adicionar "Demo mode" (seed) com dados ricos para acesso rapido.
-- Tela inicial com passo a passo: criar conta -> copiar API key -> criar fatura.
-- Mensagens de erro amigaveis no login e vazio de faturas.
+- [x] Criar pagina de "Cadastrar conta" que chama `POST /accounts`.
+- [x] Exibir API Key apenas uma vez com opcao "Copiar" + salvar cookie automaticamente.
+- [x] Adicionar "Demo mode" (seed) com dados ricos para acesso rapido.
+- [~] Tela inicial com passo a passo: criar conta -> copiar API key -> criar fatura.
+- [x] Mensagens de erro amigaveis no login e vazio de faturas.
 
 ### 2) API Gateway (Go)
 
-- Padronizar erros em JSON (code, message, details).
-- Adicionar endpoints de health:
-  - `GET /health` (liveness)
-  - `GET /ready` (readiness com DB + Kafka)
-- Implementar idempotencia no `POST /invoice` (header `Idempotency-Key`).
-- Validacao forte de payload (ex: valores, datas, cvv).
-- Mascarar dados de cartao (guardar apenas last4 e expiry).
+- [x] Padronizar erros em JSON (`code`, `message`, `details`).
+- [x] Adicionar endpoints de health (`GET /health`, `GET /ready`).
+- [ ] Implementar idempotencia no `POST /invoice` (header `Idempotency-Key`).
+- [~] Validacao forte de payload (ja valida campos principais; ainda sem validacao mais robusta como Luhn e regras de cartao por bandeira).
+- [x] Mascarar dados de cartao (persistencia apenas de `last4`, sem CVV).
 
 ### 3) Mensageria e consistencia
 
-- Definir contrato de evento em JSON com schema version.
-- Garantir deduplicacao no consumo de `transactions_result` (por event_id e invoice_id).
-- Aplicar retry com backoff no publisher/consumer e DLQ apos N tentativas.
-- Estado da fatura como state machine:
-  - `created -> pending/approved/rejected`
-  - transicao valida e auditavel
+- [ ] Definir contrato de evento em JSON com schema version.
+- [~] Garantir deduplicacao no consumo de `transactions_result` (hoje por `event_id`; falta reforco por chave de negocio/contrato).
+- [x] Aplicar retry com backoff no consumer e DLQ apos N tentativas.
+- [~] Estado da fatura como state machine com transicoes validas (ja ha validacoes e idempotencia parcial; falta trilha de auditoria de transicoes).
 
-### 4) Antifraude (Nest.js)
+### 4) Antifraude (NestJS)
 
-- Separar "API" e "worker Kafka" (profiles) para rodar apenas o consumidor.
-- Registrar motivo do score e salvar historico de analises.
-- Expor endpoint interno para consulta do resultado da analise.
+- [x] Separar API e worker Kafka.
+- [x] Registrar motivo do score e salvar historico de analises.
+- [x] Expor endpoint para consulta do resultado da analise.
 
 ### 5) Observabilidade
 
-- Logs estruturados no Go (request_id, account_id, invoice_id).
-- Correlation ID do frontend ate o antifraude (header).
-- Metricas basicas (latencia, erros, taxa de aprovacao).
+- [x] Logs estruturados no Go (`request_id` e contexto da requisicao).
+- [ ] Correlation ID de ponta a ponta (frontend -> gateway -> Kafka -> antifraude -> retorno).
+- [x] Metricas basicas (latencia/erros no gateway e contadores no antifraude).
 
-### 6) Segurança
+### 6) Seguranca
 
-- Hash de API keys (armazenar hash, comparar via HMAC).
-- Rate limiting por API key.
-- Nunca armazenar CVV; mascarar e validar dados.
-- CORS limitado e headers de seguranca no gateway.
+- [x] Hash de API keys (HMAC).
+- [x] Rate limiting por API key.
+- [x] Nunca armazenar CVV e validar payload.
+- [ ] CORS limitado e headers de seguranca no gateway.
 
 ### 7) Qualidade e DX
 
-- OpenAPI/Swagger para API Gateway.
-- Testes: unitarios (dominio), integracao (DB), e2e (fluxo).
-- Seeds e scripts para demo (1 comando).
+- [ ] OpenAPI/Swagger para API Gateway.
+- [~] Testes unitarios/integracao/e2e (Nest possui base de testes; falta cobertura forte no gateway e testes de fluxo cross-service).
+- [x] Seeds e scripts para demo em 1 comando.
 
-## Melhorias de UX (frontend)
+## Priorizacao recomendada (proximos ciclos)
 
-- "Cadastro rapido" com retorno de API key e auto-login.
-- UI com estado vazio (sem faturas) e call-to-action.
-- Mensagens claras nos erros de autenticao e falha de API.
-- Botao "Gerar fatura demo" para test drive.
-- Indicadores de status e timeline da fatura.
+Detalhamento executavel P0/P1: `docs/local/implementation-plan-p0-p1.md`
 
-## Roadmap sugerido (fases)
+### P0 - Alta prioridade (impacto direto em confiabilidade de produto)
 
-### Fase 1 (1-2 dias) - Primeira impressao e confiabilidade basica
+- [ ] Idempotencia HTTP no `POST /invoice` com `Idempotency-Key` + persistencia de resposta.
+- [ ] Outbox pattern no gateway para `pending_transactions` (evita perda de evento entre `save invoice` e `publish`).
+- [ ] Contrato de eventos versionado (`schema_version`) com validacao de payload no producer/consumer.
+- [ ] CORS restritivo + security headers no gateway (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, etc.).
 
-- Tela de cadastro + auto-login.
-- Demo mode com seed e dados ricos (1 conta + 5 faturas de status variados).
-- Padrao de erro JSON no Go.
-- Health endpoints.
-- Validacoes de payload e mascaramento de cartao.
+### P1 - Media prioridade (forte sinal de maturidade tecnica)
 
-### Fase 2 (2-4 dias) - Resiliencia e observabilidade
+- [ ] Correlation ID fim a fim com propagacao em headers Kafka.
+- [ ] OpenAPI no gateway + colecao de requests de referencia.
+- [ ] Testes de integracao no gateway (DB + Kafka fake/real) para cenarios de falha e reprocessamento.
+- [ ] Teste e2e de fluxo completo (create account -> invoice pending -> antifraude -> settlement).
+- [ ] Hardening do antifraude para dinheiro em centavos/decimal (hoje `Float` no Prisma).
 
-- Idempotencia no create invoice.
-- Deduplicacao no consumer (event_id) + tabela de processados.
-- Retry/backoff no Kafka + DLQ (transactions_result_dlq).
-- Metricas Prometheus no Go e Nest (latencia, erros, throughput).
-- Logs estruturados + correlation ID.
+### P2 - Diferenciais pleno+ (portfolio/recrutador)
 
-### Fase 3 (3-5 dias) - Nivel pleno forte
+- [ ] Auditoria de transicoes de invoice (`invoice_events`) com timeline real no frontend.
+- [ ] CI com pipeline minima: lint + test + smoke test de compose.
+- [ ] SLOs e dashboard simples (taxa de aprovacao, erro por endpoint, lag de processamento).
+- [ ] Rotacao de segredo de API key/HMAC com estrategia de migracao segura.
 
-- OpenAPI + testes integrados.
-- Rate limiting e API key hash.
-- Tracing simples.
-- Estado de faturas com historico e auditoria.
+## Novas features sugeridas para aumentar sinal de senioridade
 
-## Entregaveis de alto impacto para recrutadores
+- [ ] Inbox pattern no antifraude para dedup de consumo por `event_id` (simetria com gateway).
+- [ ] Backfill/replay seguro da DLQ com comando administrativo controlado.
+- [ ] Limites por conta (ex.: maximo diario de volume) com politicas configuraveis.
+- [ ] Modo "chaos test" local (falhar publish/consumer) para demonstrar resiliencia.
 
-- README com fluxo de demo em 3 passos.
-- Diagrama de arquitetura atualizado.
-- Exemplos de requests (curl ou api.http).
-- Testes automatizados e CI simples (lint + test).
+## Entregaveis recomendados para recrutadores
 
-## Escopo ideal (pedido atual)
-
-- Demo mode com seed (via script ou comando Docker).
-- Metricas (Prometheus) em Go e Nest.
-- Hash de API key + rate limit no Gateway.
-- DLQ e deduplicacao no consumo do Kafka.
+- [ ] README com "Demo em 3 minutos" + arquitetura atualizada + tradeoffs tecnicos.
+- [ ] Diagrama de sequencia do fluxo async (pending -> antifraude -> settlement).
+- [ ] Evidencia de qualidade: relatorio de testes e cenarios de falha cobertos.
+- [ ] Runbook de incidentes curtos (Kafka down, DB down, retries/DLQ).

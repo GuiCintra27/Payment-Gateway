@@ -1,0 +1,303 @@
+basePath: /
+definitions:
+  dto.AccountOutput:
+    properties:
+      api_key:
+        type: string
+      balance:
+        type: number
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.CreateAccountInput:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+    type: object
+  dto.DemoOutput:
+    properties:
+      account:
+        $ref: '#/definitions/dto.AccountOutput'
+      invoices:
+        items:
+          $ref: '#/definitions/dto.InvoiceOutput'
+        type: array
+    type: object
+  dto.InvoiceOutput:
+    properties:
+      account_id:
+        type: string
+      amount:
+        type: number
+      card_last_digits:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      payment_type:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  handlers.CreateInvoiceRequest:
+    properties:
+      amount:
+        example: 129.9
+        type: number
+      card_number:
+        example: "4242424242424242"
+        type: string
+      cardholder_name:
+        example: Demo User
+        type: string
+      cvv:
+        example: "123"
+        type: string
+      description:
+        example: Assinatura
+        type: string
+      expiry_month:
+        example: 12
+        type: integer
+      expiry_year:
+        example: 2030
+        type: integer
+      payment_type:
+        example: credit_card
+        type: string
+    type: object
+  response.ErrorResponse:
+    properties:
+      code:
+        type: string
+      details:
+        additionalProperties:
+          type: string
+        type: object
+      message:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Gateway API para contas e transferencias com antifraude assincrono.
+  title: Payment Gateway API
+  version: "1.0"
+paths:
+  /accounts:
+    get:
+      parameters:
+      - description: API key
+        in: header
+        name: X-API-KEY
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AccountOutput'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Buscar conta
+      tags:
+      - accounts
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Account payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateAccountInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.AccountOutput'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Criar conta
+      tags:
+      - accounts
+  /demo:
+    post:
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.DemoOutput'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Gerar demo
+      tags:
+      - demo
+  /invoice:
+    get:
+      parameters:
+      - description: API key
+        in: header
+        name: X-API-KEY
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.InvoiceOutput'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Listar faturas
+      tags:
+      - invoices
+    post:
+      consumes:
+      - application/json
+      description: Cria uma fatura e dispara antifraude quando o valor e alto.
+      parameters:
+      - description: API key
+        in: header
+        name: X-API-KEY
+        required: true
+        type: string
+      - description: Idempotency key
+        in: header
+        name: Idempotency-Key
+        type: string
+      - description: Invoice payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateInvoiceRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.InvoiceOutput'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Criar fatura
+      tags:
+      - invoices
+  /invoice/{id}:
+    get:
+      parameters:
+      - description: API key
+        in: header
+        name: X-API-KEY
+        required: true
+        type: string
+      - description: Invoice ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.InvoiceOutput'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Buscar fatura por ID
+      tags:
+      - invoices
+schemes:
+- http
+swagger: "2.0"

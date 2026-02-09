@@ -59,6 +59,7 @@ Response (201):
 curl -X POST http://localhost:8080/invoice \
   -H 'Content-Type: application/json' \
   -H 'X-API-KEY: <api_key>' \
+  -H 'Idempotency-Key: <uuid>' \
   -d '{
     "amount": 129.9,
     "description": "Assinatura",
@@ -86,6 +87,11 @@ Response (201):
   "updated_at": "2025-01-10T12:00:00Z"
 }
 ```
+
+Notas:
+
+- `Idempotency-Key` e opcional. Se informado, o gateway retorna a mesma resposta para o mesmo payload.
+- Reuso da mesma key com payload diferente retorna `409 Conflict`.
 
 ## GET /invoice
 

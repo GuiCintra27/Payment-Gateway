@@ -4,6 +4,8 @@
 
 Autenticacao sempre via header `X-API-KEY` (exceto `POST /accounts` e `POST /demo`).
 
+Idempotencia opcional via header `Idempotency-Key` no `POST /invoice`.
+
 Principais endpoints:
 
 - `POST /accounts`
@@ -27,6 +29,10 @@ Erros sao retornados em JSON:
 
 ## Kafka
 
+Headers:
+
+- `x-request-id` propagado do gateway para o antifraude e de volta no `transactions_result`.
+
 ### Topic: `pending_transactions`
 
 Publicado pelo gateway quando uma transferencia e classificada como `pending` (valor alto).
@@ -35,10 +41,12 @@ Payload:
 
 ```json
 {
+  "schema_version": 2,
   "event_id": "uuid",
   "account_id": "uuid",
   "invoice_id": "uuid",
   "amount": 15200,
+  "amount_cents": 1520000,
   "occurred_at": "2025-01-10T12:00:00Z"
 }
 ```
@@ -51,6 +59,7 @@ Payload:
 
 ```json
 {
+  "schema_version": 2,
   "event_id": "uuid",
   "invoice_id": "uuid",
   "status": "approved"

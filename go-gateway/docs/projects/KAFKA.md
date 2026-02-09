@@ -14,10 +14,19 @@ Variaveis principais:
 ## Producer
 
 Publica `pending_transactions` quando a transferencia fica `pending`.
+O publish e feito via outbox (tabela + worker) para evitar perda de eventos.
+
+Payload inclui `schema_version` e `amount_cents` (mantem `amount` por compatibilidade).
 
 ## Consumer
 
 Consome `transactions_result` e atualiza status das transferencias.
+
+Payload inclui `schema_version`.
+
+Headers:
+
+- `x-request-id` propagado quando presente.
 
 - Deduplicacao por `event_id` em `processed_events`.
 - Retry com backoff exponencial.
