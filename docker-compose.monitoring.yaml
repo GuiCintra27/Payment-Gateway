@@ -9,6 +9,8 @@ services:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    networks:
+      - payment-gateway_default
     restart: unless-stopped
 
   grafana:
@@ -23,4 +25,10 @@ services:
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
     depends_on:
       - prometheus
+    networks:
+      - payment-gateway_default
     restart: unless-stopped
+
+networks:
+  payment-gateway_default:
+    external: true

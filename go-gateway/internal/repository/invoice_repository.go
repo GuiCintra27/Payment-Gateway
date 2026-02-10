@@ -318,13 +318,13 @@ func (r *InvoiceRepository) insertInvoiceEvent(
 		toValue = sql.NullString{String: string(*toStatus), Valid: true}
 	}
 
-	var metadataValue []byte
+	var metadataValue interface{}
 	if metadata != nil {
 		payload, err := json.Marshal(metadata)
 		if err != nil {
 			return err
 		}
-		metadataValue = payload
+		metadataValue = json.RawMessage(payload)
 	}
 
 	requestValue := sql.NullString{}

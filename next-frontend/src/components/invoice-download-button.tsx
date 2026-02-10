@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ComponentProps } from "react";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { Download, Loader2 } from "lucide-react";
 
@@ -19,7 +19,7 @@ type InvoiceData = {
 };
 
 type InvoiceDownloadButtonProps = Omit<
-  React.ComponentProps<typeof Button>,
+  ComponentProps<typeof Button>,
   "onClick" | "children"
 > & {
   invoice: InvoiceData;
@@ -213,7 +213,7 @@ export function InvoiceDownloadButton({
       });
 
       const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes as any], { type: "application/pdf" });
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;

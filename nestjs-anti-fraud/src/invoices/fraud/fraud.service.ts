@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ProcessInvoiceFraudDto } from '../dto/process-invoice-fraud.dto';
-import { Account, FraudReason, InvoiceStatus } from '@prisma/client';
-import { ConfigService } from '@nestjs/config';
+import { InvoiceStatus } from '@prisma/client';
 import { FraudAggregateSpecification } from './specifications/fraud-aggregate.specification';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InvoiceProcessedEvent } from '../events/invoice-processed.event';
@@ -11,7 +10,6 @@ import { InvoiceProcessedEvent } from '../events/invoice-processed.event';
 export class FraudService {
   constructor(
     private prismaService: PrismaService,
-    //private configService: ConfigService,
     private fraudAggregateSpec: FraudAggregateSpecification,
     private eventEmitter: EventEmitter2,
   ) {}

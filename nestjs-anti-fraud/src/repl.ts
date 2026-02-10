@@ -4,7 +4,7 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   await repl(AppModule);
 }
-bootstrap();
+void bootstrap();
 
 //repl - read-eval-print loop
 

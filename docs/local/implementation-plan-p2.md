@@ -16,25 +16,105 @@ Este plano cobre apenas os itens da secao **P2** do `docs/local/architecture-imp
 - [x] P2.3 SLOs + monitoring (Prometheus/Grafana + dashboards).
 - [x] P2.4 Rotacao de segredo HMAC (API_KEY_SECRETS + API_KEY_ACTIVE_KEY_ID).
 
+## Pre-requisitos para validacao
+- Docker ativo.
+- Migrations aplicadas:
+  - Gateway: `go-gateway/migrations/000005_add_invoice_events_and_api_key_key_id.*`
+  - Antifraude: `npx prisma migrate dev` (ou `deploy`)
+- Variaveis de ambiente para rotacao HMAC:
+  - `API_KEY_SECRETS`
+  - `API_KEY_ACTIVE_KEY_ID`
+
+## Checklist de validacao P2
+- [x] P2.1 Auditoria/timeline (API/DB ok; UI manual pendente)
+- [x] P2.2 CI minima (lint/test/smoke ok, com avisos)
+- [x] P2.3 Monitoring
+- [x] P2.4 Rotacao HMAC
+
+## Resultados da validacao (2026-02-10)
+
+### P2.1 Auditoria/timeline
+- Status: ok (API/DB). UI pendente.
+- Evidencia:
+  - Invoice imediata: eventos `created` + `approved`.
+  - Invoice pending: eventos `created` -> `pending_published` -> `approved` -> `balance_applied` com `request_id`.
+  - API key invalida retorna `401`.
+- Pendencias:
+  - Validar timeline no frontend manualmente (visual).
+
+### P2.2 CI minima
+- Status: ok com avisos
+- `./scripts/ci.sh gateway`: ok.
+- `./scripts/ci.sh frontend`: ok (1 warning `react-hooks/incompatible-library`).
+- `./scripts/ci.sh antifraud`: ok (warnings de `no-unsafe-argument`).
+- `./scripts/ci.sh smoke`: ok (saidas temporarias de `curl` durante warm-up).
+
+### P2.3 Monitoring
+- Status: ok
+- Grafana: respondeu `200` em `/api/health`.
+- Prometheus targets: `up` usando `nestjs:3000`, `nestjs-worker:3101`, `go-gateway:8080`.
+
+### P2.4 Rotacao HMAC
+- Status: ok
+- Conta nova criada com `API_KEY_ACTIVE_KEY_ID=v2` gravou `api_key_key_id=v2`.
+- Conta antiga (`v1`) continuou autenticando com `API_KEY_SECRETS` incluindo o segredo antigo (`v1:change-me`).
+
 ## Como testar (quando tiver tempo)
 
-### P2.1 Auditoria e timeline
+### P2.1 — Auditoria e timeline
 
+**Objetivo:** confirmar geracao dos eventos, endpoint, protecao por API key e renderizacao no frontend.
+
+**Passos (API/DB)**
 1. Suba o stack local (`./start-dev.sh`) ou via Docker (`docker compose up -d --build`).
-2. Crie uma invoice via UI ou API.
-3. Consulte eventos:
+2. Crie uma conta via API (`POST /accounts`) e guarde a `api_key`.
+3. Crie uma invoice imediata (valor <= 10000) via `POST /invoice`.
+4. Consulte eventos:
 
-```bash
-curl http://localhost:8080/invoice/<id>/events -H "X-API-KEY: <api_key>"
-```
+   ```bash
+   curl http://localhost:8080/invoice/<id>/events -H "X-API-KEY: <api_key>"
+   ```
 
-4. Abra o detalhe da invoice no frontend e valide a timeline.
+5. Esperado: `created` + `approved` (e possivelmente `balance_applied`).
+6. Crie uma invoice pending (valor > 10000) com `X-Request-Id`.
+7. Apos o antifraude processar:
+   - `GET /invoice/{id}/events`
+   - Esperado: `created` -> `pending_published` -> `approved/rejected` -> `balance_applied`
+8. Permissao: chamar `GET /invoice/{id}/events` com API key errada -> `401/403`.
+
+**Passos (frontend)**
+1. Abra o detalhe da invoice.
+2. Verifique a timeline exibindo eventos em ordem cronologica.
+
+**Check de DB (opcional)**
+- `SELECT event_type, request_id FROM invoice_events WHERE invoice_id = ... ORDER BY created_at;`
+
+**Checklist**
+- [ ] Endpoint retorna eventos com API key valida
+- [ ] Endpoint bloqueia API key invalida
+- [ ] Timeline exibe os eventos no detalhe
+- [ ] Eventos incluem `request_id` quando enviado
+- [ ] Ordem dos eventos esta correta
 
 ### P2.2 CI local
 
 ```bash
 ./scripts/ci.sh
 ```
+
+**Passos**
+1. Executar:
+   - `./scripts/ci.sh gateway`
+   - `./scripts/ci.sh frontend`
+   - `./scripts/ci.sh antifraud`
+   - `./scripts/ci.sh smoke`
+2. Verificar workflow:
+   - `.github/workflows/ci.yml` aponta para o script e jobs estao presentes.
+
+**Checklist**
+- [ ] `scripts/ci.sh` passa em todos os scopes
+- [ ] Smoke sobe e derruba stack com sucesso
+- [ ] Workflow CI presente e referencia `scripts/ci.sh`
 
 ### P2.3 Monitoring
 
@@ -44,6 +124,11 @@ docker compose -f docker-compose.monitoring.yaml up -d
 
 - Prometheus: `http://localhost:9090`
 - Grafana: `http://localhost:3004` (admin/admin)
+
+**Checklist**
+- [ ] Prometheus com targets `UP`
+- [ ] Grafana acessivel
+- [ ] Dashboard carrega dados
 
 ### P2.4 Rotacao HMAC
 
@@ -56,6 +141,20 @@ API_KEY_ACTIVE_KEY_ID=v2
 
 2. Crie conta nova e valide autenticação.
 3. Verifique que contas antigas continuam autenticando com `v1`.
+
+**Checklist**
+- [ ] Conta nova usa `API_KEY_ACTIVE_KEY_ID`
+- [ ] Conta antiga autentica com `v1`
+- [ ] Troca do `ACTIVE_KEY_ID` nao quebra contas existentes
+
+## Alteracoes em APIs/Interfaces (referencia)
+- `GET /invoice/{id}/events` validado.
+- Sem mudanca no contrato HTTP principal (headers/requests existentes).
+
+## Assumptions e defaults
+- `pending` quando `amount > 10000`.
+- Prometheus scrape em `/metrics/prom`.
+- Grafana em `localhost:3004`.
 
 ---
 

@@ -1,6 +1,6 @@
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
-import { CheckCircle2, Copy, Key, ArrowRight, Sparkles } from "lucide-react"
+import { CheckCircle2, Key, ArrowRight, Sparkles } from "lucide-react"
 import { CopyButton } from "@/components/copy-button"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
