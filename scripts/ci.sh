@@ -43,6 +43,15 @@ wait_for() {
 
 run_smoke() {
   log "Running smoke (docker compose)"
+  if [[ ! -f "$ROOT_DIR/nestjs-anti-fraud/.env" ]]; then
+    if [[ -f "$ROOT_DIR/nestjs-anti-fraud/.env.example" ]]; then
+      log "Seeding nestjs-anti-fraud/.env from .env.example for CI smoke"
+      cp "$ROOT_DIR/nestjs-anti-fraud/.env.example" "$ROOT_DIR/nestjs-anti-fraud/.env"
+    else
+      log "Missing nestjs-anti-fraud/.env and .env.example"
+      return 1
+    fi
+  fi
   (cd "$ROOT_DIR" && docker compose up -d --build)
 
   wait_for "http://localhost:8080/health" "gateway health"
