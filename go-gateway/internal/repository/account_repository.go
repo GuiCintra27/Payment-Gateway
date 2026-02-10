@@ -21,10 +21,26 @@ func NewAccountRepository(db *sql.DB) *AccountRepository {
 // Save persiste uma nova conta no banco de dados
 // Retorna erro se houver falha na inserção
 func (r *AccountRepository) Save(account *domain.Account) error {
-	apiKeyHash := security.HashAPIKey(account.APIKey)
+	keyID := account.APIKeyKeyID
+	var apiKeyHash string
+	var err error
+
+	if keyID == "" {
+		apiKeyHash, keyID, err = security.HashAPIKeyWithActiveKey(account.APIKey)
+		if err != nil {
+			return err
+		}
+		account.APIKeyKeyID = keyID
+	} else {
+		apiKeyHash, err = security.HashAPIKey(account.APIKey, keyID)
+		if err != nil {
+			return err
+		}
+	}
+
 	stmt, err := r.db.Prepare(`
-        INSERT INTO accounts (id, name, email, api_key, balance_cents, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO accounts (id, name, email, api_key, api_key_key_id, balance_cents, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     `)
 	if err != nil {
 		return err
@@ -36,6 +52,7 @@ func (r *AccountRepository) Save(account *domain.Account) error {
 		account.Name,
 		account.Email,
 		apiKeyHash,
+		account.APIKeyKeyID,
 		account.BalanceCents,
 		account.CreatedAt,
 		account.UpdatedAt,
@@ -49,33 +66,42 @@ func (r *AccountRepository) Save(account *domain.Account) error {
 // FindByAPIKey busca uma conta pelo API Key
 // Retorna ErrAccountNotFound se não encontrada
 func (r *AccountRepository) FindByAPIKey(apiKey string) (*domain.Account, error) {
-	apiKeyHash := security.HashAPIKey(apiKey)
-	var account domain.Account
-	var createdAt, updatedAt time.Time
-
-	err := r.db.QueryRow(`
-		SELECT id, name, email, api_key, balance_cents, created_at, updated_at
-		FROM accounts
-		WHERE api_key = $1
-	`, apiKeyHash).Scan(
-		&account.ID,
-		&account.Name,
-		&account.Email,
-		&account.APIKey,
-		&account.BalanceCents,
-		&createdAt,
-		&updatedAt,
-	)
-	if err == sql.ErrNoRows {
-		return nil, domain.ErrAccountNotFound
-	}
+	candidates, err := security.HashAPIKeyCandidates(apiKey)
 	if err != nil {
 		return nil, err
 	}
 
-	account.CreatedAt = createdAt
-	account.UpdatedAt = updatedAt
-	return &account, nil
+	for _, candidate := range candidates {
+		var account domain.Account
+		var createdAt, updatedAt time.Time
+
+		err := r.db.QueryRow(`
+			SELECT id, name, email, api_key, api_key_key_id, balance_cents, created_at, updated_at
+			FROM accounts
+			WHERE api_key = $1 AND api_key_key_id = $2
+		`, candidate.Hash, candidate.KeyID).Scan(
+			&account.ID,
+			&account.Name,
+			&account.Email,
+			&account.APIKey,
+			&account.APIKeyKeyID,
+			&account.BalanceCents,
+			&createdAt,
+			&updatedAt,
+		)
+		if err == sql.ErrNoRows {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		account.CreatedAt = createdAt
+		account.UpdatedAt = updatedAt
+		return &account, nil
+	}
+
+	return nil, domain.ErrAccountNotFound
 }
 
 // FindByEmail busca uma conta pelo email
@@ -85,7 +111,7 @@ func (r *AccountRepository) FindByEmail(email string) (*domain.Account, error) {
 	var createdAt, updatedAt time.Time
 
 	err := r.db.QueryRow(`
-		SELECT id, name, email, api_key, balance_cents, created_at, updated_at
+		SELECT id, name, email, api_key, api_key_key_id, balance_cents, created_at, updated_at
 		FROM accounts
 		WHERE email = $1
 	`, email).Scan(
@@ -93,6 +119,7 @@ func (r *AccountRepository) FindByEmail(email string) (*domain.Account, error) {
 		&account.Name,
 		&account.Email,
 		&account.APIKey,
+		&account.APIKeyKeyID,
 		&account.BalanceCents,
 		&createdAt,
 		&updatedAt,
@@ -116,7 +143,7 @@ func (r *AccountRepository) FindByID(id string) (*domain.Account, error) {
 	var createdAt, updatedAt time.Time
 
 	err := r.db.QueryRow(`
-		SELECT id, name, email, api_key, balance_cents, created_at, updated_at
+		SELECT id, name, email, api_key, api_key_key_id, balance_cents, created_at, updated_at
 		FROM accounts
 		WHERE id = $1
 	`, id).Scan(
@@ -124,6 +151,7 @@ func (r *AccountRepository) FindByID(id string) (*domain.Account, error) {
 		&account.Name,
 		&account.Email,
 		&account.APIKey,
+		&account.APIKeyKeyID,
 		&account.BalanceCents,
 		&createdAt,
 		&updatedAt,

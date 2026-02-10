@@ -215,6 +215,53 @@ func (h *InvoiceHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusOK, output)
 }
 
+// ListEvents retorna o historico de eventos de uma fatura.
+// @Summary Listar eventos da fatura
+// @Tags invoices
+// @Produce json
+// @Param X-API-KEY header string true "API key"
+// @Param id path string true "Invoice ID"
+// @Success 200 {array} dto.InvoiceEventOutput
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 403 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /invoice/{id}/events [get]
+func (h *InvoiceHandler) ListEvents(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		response.Error(w, http.StatusBadRequest, "invoice_id_required", "invoice id is required", nil)
+		return
+	}
+
+	apiKey := r.Header.Get("X-API-KEY")
+	if apiKey == "" {
+		response.Error(w, http.StatusUnauthorized, "api_key_required", "api key is required", nil)
+		return
+	}
+
+	events, err := h.service.ListEventsByInvoiceID(id, apiKey)
+	if err != nil {
+		switch err {
+		case domain.ErrInvoiceNotFound:
+			response.Error(w, http.StatusNotFound, "invoice_not_found", "invoice not found", nil)
+			return
+		case domain.ErrAccountNotFound:
+			response.Error(w, http.StatusUnauthorized, "invalid_api_key", "invalid api key", nil)
+			return
+		case domain.ErrUnauthorizedAccess:
+			response.Error(w, http.StatusForbidden, "forbidden", "forbidden", nil)
+			return
+		default:
+			response.Error(w, http.StatusInternalServerError, "internal_error", "internal server error", nil)
+			return
+		}
+	}
+
+	response.JSON(w, http.StatusOK, events)
+}
+
 func writeCachedResponse(w http.ResponseWriter, status int, body []byte) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

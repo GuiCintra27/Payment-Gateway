@@ -6,6 +6,17 @@ import { cookies } from "next/headers"
 import { StatusBadge } from "@/components/StatusBadge"
 import { getApiBaseUrl } from "@/lib/api"
 
+type InvoiceEvent = {
+  id: string
+  invoice_id: string
+  event_type: string
+  from_status?: string | null
+  to_status?: string | null
+  metadata?: Record<string, unknown> | null
+  request_id?: string | null
+  created_at: string
+}
+
 export async function getInvoice(id: string) {
   const cookiesStore = await cookies()
   const apiKey = cookiesStore.get("apiKey")?.value
@@ -22,6 +33,25 @@ export async function getInvoice(id: string) {
   return response.json()
 }
 
+export async function getInvoiceEvents(id: string): Promise<InvoiceEvent[]> {
+  const cookiesStore = await cookies()
+  const apiKey = cookiesStore.get("apiKey")?.value
+  const apiBaseUrl = getApiBaseUrl()
+  const response = await fetch(`${apiBaseUrl}/invoice/${id}/events`, {
+    headers: {
+      "X-API-KEY": apiKey as string,
+    },
+    cache: "no-store",
+    next: {
+      tags: [`accounts/${apiKey}/invoices/${id}/events`],
+    },
+  })
+  if (!response.ok) {
+    return []
+  }
+  return response.json()
+}
+
 export default async function InvoiceDetailsPage({
   params,
 }: {
@@ -29,6 +59,45 @@ export default async function InvoiceDetailsPage({
 }) {
   const { id } = await params
   const invoice = await getInvoice(id)
+  const events = await getInvoiceEvents(id)
+
+  const eventConfig: Record<
+    string,
+    { title: string; description: string; tone: "success" | "warning" | "danger" | "neutral" }
+  > = {
+    created: {
+      title: "Transacao criada",
+      description: "Registro inicial da fatura",
+      tone: "neutral",
+    },
+    pending_published: {
+      title: "Analise antifraude iniciada",
+      description: "Evento publicado para validacao",
+      tone: "warning",
+    },
+    approved: {
+      title: "Transacao aprovada",
+      description: "Pagamento confirmado",
+      tone: "success",
+    },
+    rejected: {
+      title: "Transacao rejeitada",
+      description: "Verifique os dados do cartao",
+      tone: "danger",
+    },
+    balance_applied: {
+      title: "Saldo atualizado",
+      description: "Credito aplicado na conta",
+      tone: "success",
+    },
+  }
+
+  const toneColor = (tone: "success" | "warning" | "danger" | "neutral") => {
+    if (tone === "success") return "bg-success"
+    if (tone === "warning") return "bg-warning"
+    if (tone === "danger") return "bg-destructive"
+    return "bg-primary"
+  }
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto animate-fadeIn">
@@ -169,59 +238,44 @@ export default async function InvoiceDetailsPage({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {/* Event items */}
-              <div className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <div className="size-3 rounded-full bg-success" />
-                  <div className="w-px flex-1 bg-border" />
-                </div>
-                <div className="pb-4">
-                  <p className="text-sm font-medium text-foreground">
-                    Transacao criada
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(invoice.created_at).toLocaleString("pt-BR")}
-                  </p>
-                </div>
+            {events.length === 0 ? (
+              <div className="text-sm text-muted-foreground">
+                Nenhum evento registrado ainda.
               </div>
-
-              <div className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <div className="size-3 rounded-full bg-warning" />
-                  <div className="w-px flex-1 bg-border" />
-                </div>
-                <div className="pb-4">
-                  <p className="text-sm font-medium text-foreground">
-                    Analise antifraude iniciada
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Processamento automatico
-                  </p>
-                </div>
+            ) : (
+              <div className="space-y-4">
+                {events.map((event, index) => {
+                  const config =
+                    eventConfig[event.event_type] ??
+                    {
+                      title: event.event_type,
+                      description: "Evento registrado",
+                      tone: "neutral" as const,
+                    }
+                  return (
+                    <div className="flex gap-4" key={event.id}>
+                      <div className="flex flex-col items-center">
+                        <div className={`size-3 rounded-full ${toneColor(config.tone)}`} />
+                        {index < events.length - 1 && (
+                          <div className="w-px flex-1 bg-border" />
+                        )}
+                      </div>
+                      <div className="pb-4">
+                        <p className="text-sm font-medium text-foreground">
+                          {config.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {config.description}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(event.created_at).toLocaleString("pt-BR")}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
-
-              <div className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <div className={`size-3 rounded-full ${
-                    invoice.status === "approved" ? "bg-success" :
-                    invoice.status === "rejected" ? "bg-destructive" : "bg-warning"
-                  }`} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">
-                    {invoice.status === "approved" && "Transacao aprovada"}
-                    {invoice.status === "rejected" && "Transacao rejeitada"}
-                    {invoice.status === "pending" && "Aguardando processamento"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {invoice.status === "approved" && "Pagamento confirmado"}
-                    {invoice.status === "rejected" && "Verifique os dados do cartao"}
-                    {invoice.status === "pending" && "Em analise"}
-                  </p>
-                </div>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>

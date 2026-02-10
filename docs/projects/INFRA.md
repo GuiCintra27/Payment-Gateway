@@ -6,6 +6,7 @@ O repositorio possui dois arquivos principais:
 
 - `docker-compose.yaml`: sobe toda a stack (frontend + gateway + antifraude + kafka + postgres).
 - `docker-compose.infra.yaml`: sobe apenas a infra (kafka + postgres + migrations).
+- `docker-compose.monitoring.yaml`: sobe Prometheus + Grafana (dashboard).
 
 ### Servicos (docker-compose.yaml)
 
@@ -28,6 +29,11 @@ O repositorio possui dois arquivos principais:
 - `kafka-init`
 - `go-migrate`
 
+### Servicos (docker-compose.monitoring.yaml)
+
+- `prometheus`
+- `grafana`
+
 ## Volumes
 
 - `gateway_db_data`
@@ -46,6 +52,8 @@ Todos os servicos compartilham a rede `gateway-network`.
 - Postgres gateway: 5434
 - Postgres antifraude: 5433
 - Kafka: 9092
+- Prometheus: 9090
+- Grafana: 3004
 
 ## Execucao local
 

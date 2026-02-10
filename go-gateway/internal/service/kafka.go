@@ -211,8 +211,10 @@ func (c *KafkaConsumer) Consume(ctx context.Context) error {
 			"invoice_id", result.InvoiceID,
 			"status", result.Status)
 
+		requestID := getHeader(msg.Headers, "x-request-id")
+
 		// Processa o resultado da transação
-		if err := c.processWithRetry(ctx, result); err != nil {
+		if err := c.processWithRetry(ctx, result, requestID); err != nil {
 			slog.Error("erro ao processar resultado da transacao",
 				"error", err,
 				"invoice_id", result.InvoiceID,
@@ -228,8 +230,6 @@ func (c *KafkaConsumer) Consume(ctx context.Context) error {
 			time.Sleep(500 * time.Millisecond)
 			continue
 		}
-
-		requestID := getHeader(msg.Headers, "x-request-id")
 
 		slog.Info("transação processada com sucesso",
 			"invoice_id", result.InvoiceID,
@@ -273,10 +273,10 @@ type dlqMessage struct {
 	FailedAt  time.Time `json:"failed_at"`
 }
 
-func (c *KafkaConsumer) processWithRetry(ctx context.Context, result events.TransactionResult) error {
+func (c *KafkaConsumer) processWithRetry(ctx context.Context, result events.TransactionResult, requestID string) error {
 	backoff := 200 * time.Millisecond
 	for attempt := 1; attempt <= c.maxRetries; attempt++ {
-		if err := c.invoiceService.ProcessTransactionResult(result.InvoiceID, result.ToDomainStatus()); err != nil {
+		if err := c.invoiceService.ProcessTransactionResult(result.InvoiceID, result.ToDomainStatus(), requestID); err != nil {
 			if attempt == c.maxRetries {
 				return err
 			}

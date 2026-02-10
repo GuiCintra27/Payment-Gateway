@@ -14,6 +14,7 @@ Principais endpoints:
 - `POST /invoice`
 - `GET /invoice`
 - `GET /invoice/{id}`
+- `GET /invoice/{id}/events`
 
 Erros sao retornados em JSON:
 

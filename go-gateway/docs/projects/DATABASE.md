@@ -6,6 +6,7 @@
 - `name`
 - `email` (unique)
 - `api_key` (unique, HMAC hash)
+- `api_key_key_id`
 - `balance_cents`
 - `created_at`, `updated_at`
 
@@ -25,6 +26,16 @@
 - `event_id` (uuid, pk)
 - `invoice_id`
 - `processed_at`
+
+## invoice_events
+
+- `id` (uuid, pk)
+- `invoice_id`
+- `event_type`
+- `from_status`, `to_status`
+- `metadata`
+- `request_id`
+- `created_at`
 
 ## idempotency_keys
 
@@ -54,3 +65,4 @@
 - `000002_create_processed_events.up.sql`
 - `000003_convert_money_to_cents.up.sql`
 - `000004_add_idempotency_and_outbox.up.sql`
+- `000005_add_invoice_events_and_api_key_key_id.up.sql`

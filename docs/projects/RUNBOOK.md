@@ -36,8 +36,27 @@ docker compose -f docker-compose.infra.yaml up -d
 - Gateway liveness: `GET /health`
 - Gateway readiness: `GET /ready`
 - Gateway metrics: `GET /metrics`
+- Gateway metrics (Prometheus): `GET /metrics/prom`
 - Antifraude metrics (HTTP): `GET /metrics`
 - Antifraude metrics (worker Kafka): `GET /metrics` em `ANTIFRAUD_WORKER_PORT`
+- Antifraude metrics (Prometheus): `GET /metrics/prom` (API + worker)
+
+## Monitoring (Prometheus + Grafana)
+
+```bash
+docker compose -f docker-compose.monitoring.yaml up -d
+```
+
+Portas:
+
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3004` (admin/admin)
+
+## Alertas basicos (sugeridos)
+
+- Taxa de erro 5xx acima de 1% por 5 minutos.
+- Nenhum evento processado no antifraude em 10 minutos (possible backlog).
+- Lag de processamento acima de 10s por 5 minutos.
 
 ## Parar tudo
 
