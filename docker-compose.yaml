@@ -124,7 +124,7 @@ services:
     build:
       context: ./nestjs-anti-fraud
     working_dir: /home/node/app
-    user: "${LOCAL_UID:-1001}:${LOCAL_GID:-1001}"
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
     env_file:
       - ./nestjs-anti-fraud/.env
     command: sh -c "npm install && npx prisma migrate deploy"
@@ -142,7 +142,7 @@ services:
     build:
       context: ./nestjs-anti-fraud
     working_dir: /home/node/app
-    user: "${LOCAL_UID:-1001}:${LOCAL_GID:-1001}"
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
     env_file:
       - ./nestjs-anti-fraud/.env
     command: sh -c "npm install && npm run start:dev"
@@ -166,7 +166,7 @@ services:
     build:
       context: ./nestjs-anti-fraud
     working_dir: /home/node/app
-    user: "${LOCAL_UID:-1001}:${LOCAL_GID:-1001}"
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
     env_file:
       - ./nestjs-anti-fraud/.env
     environment:
@@ -190,7 +190,7 @@ services:
     build:
       context: ./next-frontend
     working_dir: /home/node/app
-    user: "${LOCAL_UID:-1001}:${LOCAL_GID:-1001}"
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
     environment:
       API_BASE_URL: http://go-gateway:8080
     command: sh -c "npm install && npm run dev -- --hostname 0.0.0.0 --port 3000"
@@ -209,7 +209,7 @@ services:
   nestjs-permissions-init:
     image: alpine:3.19
     user: "0:0"
-    command: sh -c "mkdir -p /home/node/app/dist /home/node/app/node_modules && chown -R ${LOCAL_UID:-1001}:${LOCAL_GID:-1001} /home/node/app/dist /home/node/app/node_modules"
+    command: sh -c "mkdir -p /home/node/app/dist /home/node/app/node_modules && chown -R ${LOCAL_UID:-1000}:${LOCAL_GID:-1000} /home/node/app/dist /home/node/app/node_modules"
     volumes:
       - ./nestjs-anti-fraud:/home/node/app
       - nestjs_node_modules:/home/node/app/node_modules
@@ -218,7 +218,7 @@ services:
   frontend-permissions-init:
     image: alpine:3.19
     user: "0:0"
-    command: sh -c "mkdir -p /home/node/app/.next /home/node/app/node_modules && chown -R ${LOCAL_UID:-1001}:${LOCAL_GID:-1001} /home/node/app/.next /home/node/app/node_modules"
+    command: sh -c "mkdir -p /home/node/app/.next /home/node/app/node_modules && chown -R ${LOCAL_UID:-1000}:${LOCAL_GID:-1000} /home/node/app/.next /home/node/app/node_modules"
     volumes:
       - ./next-frontend:/home/node/app
       - next_node_modules:/home/node/app/node_modules
