@@ -209,7 +209,7 @@ services:
   nestjs-permissions-init:
     image: alpine:3.19
     user: "0:0"
-    command: sh -c "mkdir -p /home/node/app/dist /home/node/app/node_modules && chown -R ${LOCAL_UID:-1000}:${LOCAL_GID:-1000} /home/node/app/dist /home/node/app/node_modules"
+    command: sh -c "mkdir -p /home/node/app/dist /home/node/app/node_modules && chown -R ${LOCAL_UID:-1000}:${LOCAL_GID:-1000} /home/node/app"
     volumes:
       - ./nestjs-anti-fraud:/home/node/app
       - nestjs_node_modules:/home/node/app/node_modules
