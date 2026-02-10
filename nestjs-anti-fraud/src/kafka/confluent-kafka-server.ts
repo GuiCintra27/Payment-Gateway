@@ -273,9 +273,8 @@ export class ConfluentKafkaServer
     replyPartition: string | undefined,
     correlationId: string,
   ): Promise<RecordMetadata[]> {
-    const responsePacket = message.response as ReadPacket;
     const outgoingMessage = ensureKafkaMessage(
-      (await this.serializer.serialize(responsePacket)) as Message,
+      (await this.serializer.serialize(message)) as Message,
     );
     this.assignReplyPartition(replyPartition, outgoingMessage);
     this.assignCorrelationIdHeader(correlationId, outgoingMessage);
