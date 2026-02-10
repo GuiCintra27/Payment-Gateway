@@ -12,15 +12,19 @@ Este plano detalha as tasks P0 e P1 para elevar a confiabilidade, seguranca e si
 ## Validacao executada (P0/P1)
 - Idempotencia: mesma `Idempotency-Key` + mesmo payload retornou a mesma fatura; payload diferente retornou `409`.
 - Persistencia: `idempotency_keys` gravou `status=completed`, `status_code=201` e `expires_at` com TTL de 24h.
-- Outbox: evento `pending_transaction` foi criado e enviado; payload contem `schema_version=2` e `amount_cents`.
+- Outbox: evento `pending_transaction` foi criado e enviado; payload contem `schema_version=2`, `amount_cents` e `correlation_id`.
+- Invoice events: `created -> pending_published -> approved -> balance_applied` com `request_id`.
 - Correlation ID: `X-Request-Id` propagou para `outbox_events.correlation_id` e logs do antifraude.
 - Async antifraude: invoice pendente foi processada pelo worker e passou para `approved`.
-- Resiliencia do outbox: com Kafka desligado o evento ficou pendente/processando, e foi enviado apos o broker subir.
 - OpenAPI: `GET /swagger/index.html` retornou `200`.
 - CORS/headers: `OPTIONS /invoice` retornou `204` com `Access-Control-Allow-Origin` e headers de seguranca.
 - Metrics: `GET /metrics` respondeu em gateway, antifraude HTTP e antifraude worker.
+- Antifraude Decimal: coluna `amount` do Prisma foi criada como `numeric` no Postgres.
+- Testes: `./scripts/ci.sh gateway` e `./scripts/ci.sh gateway-integration` passaram.
 
-Observacao: o worker do antifraude precisou de ajuste de tipos nos headers Kafka para compilar. A validacao inclui essa correcao.
+Observacoes:
+- `./scripts/e2e.sh` falhou por conta fixa `e2e@local` ja existente (curl retorna `409` e o script nao trata). Fluxo e2e foi validado manualmente com email unico (create account -> create pending invoice -> antifraude -> status aprovado).
+- A validacao incluiu os ajustes de tipagem no Kafka do antifraude feitos na P1/P2.
 
 ## Como testar (checklist)
 

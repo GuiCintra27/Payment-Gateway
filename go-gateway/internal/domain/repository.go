@@ -1,5 +1,7 @@
 package domain
 
+import "time"
+
 type AccountRepository interface {
 	Save(account *Account) error
 	FindByAPIKey(apiKey string) (*Account, error)
@@ -14,6 +16,7 @@ type InvoiceRepository interface {
 	SaveWithOutbox(invoice *Invoice, eventType string, payload []byte, correlationID string) error
 	FindByID(id string) (*Invoice, error)
 	FindByAccountID(accountID string) ([]*Invoice, error)
+	GetDailyUsage(accountID string, start, end time.Time) (*DailyUsage, error)
 	UpdateStatus(invoice *Invoice) error
 	ApplyTransactionResult(invoiceID string, status Status, requestID string) error
 	ListEventsByInvoiceID(invoiceID string) ([]*InvoiceEvent, error)

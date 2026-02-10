@@ -26,8 +26,8 @@ Este plano cobre apenas os itens da secao **P2** do `docs/local/architecture-imp
   - `API_KEY_ACTIVE_KEY_ID`
 
 ## Checklist de validacao P2
-- [x] P2.1 Auditoria/timeline (API/DB ok; UI manual pendente)
-- [x] P2.2 CI minima (lint/test/smoke ok, com avisos)
+- [~] P2.1 Auditoria/timeline (API/DB ok; UI manual pendente)
+- [~] P2.2 CI minima (lint/test ok com warnings; smoke nao revalidado)
 - [x] P2.3 Monitoring
 - [x] P2.4 Rotacao HMAC
 
@@ -43,16 +43,16 @@ Este plano cobre apenas os itens da secao **P2** do `docs/local/architecture-imp
   - Validar timeline no frontend manualmente (visual).
 
 ### P2.2 CI minima
-- Status: ok com avisos
+- Status: ok com avisos (lint) e pendencia de smoke na ultima rodada.
 - `./scripts/ci.sh gateway`: ok.
 - `./scripts/ci.sh frontend`: ok (1 warning `react-hooks/incompatible-library`).
-- `./scripts/ci.sh antifraud`: ok (warnings de `no-unsafe-argument`).
-- `./scripts/ci.sh smoke`: ok (saidas temporarias de `curl` durante warm-up).
+- `./scripts/ci.sh antifraud`: ok (npm warnings de deprecacao/audit).
+- `./scripts/ci.sh smoke`: nao revalidado nesta rodada.
 
 ### P2.3 Monitoring
 - Status: ok
-- Grafana: respondeu `200` em `/api/health`.
-- Prometheus targets: `up` usando `nestjs:3000`, `nestjs-worker:3101`, `go-gateway:8080`.
+- Grafana: respondeu `200` em `/api/health` (porta 3004).
+- Prometheus targets: `up` usando `antifraud`, `antifraud_worker`, `gateway`.
 
 ### P2.4 Rotacao HMAC
 - Status: ok

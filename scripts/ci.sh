@@ -13,6 +13,11 @@ run_gateway() {
   (cd "$ROOT_DIR/go-gateway" && go test ./...)
 }
 
+run_gateway_integration() {
+  log "Running Go integration tests (gateway)"
+  (cd "$ROOT_DIR/go-gateway" && go test -tags=integration ./...)
+}
+
 run_frontend() {
   log "Running frontend lint (next-frontend)"
   (cd "$ROOT_DIR/next-frontend" && npm ci && npm run lint)
@@ -71,6 +76,11 @@ run_smoke() {
   log "Smoke OK"
 }
 
+run_e2e() {
+  log "Running E2E flow"
+  (cd "$ROOT_DIR" && ./scripts/e2e.sh)
+}
+
 cleanup() {
   if [[ "$SCOPE" == "smoke" || "$SCOPE" == "all" ]]; then
     log "Cleaning up docker compose"
@@ -84,6 +94,9 @@ case "$SCOPE" in
   gateway)
     run_gateway
     ;;
+  gateway-integration)
+    run_gateway_integration
+    ;;
   frontend)
     run_frontend
     ;;
@@ -93,6 +106,9 @@ case "$SCOPE" in
   smoke)
     run_smoke
     ;;
+  e2e)
+    run_e2e
+    ;;
   all)
     run_gateway
     run_frontend
@@ -100,7 +116,7 @@ case "$SCOPE" in
     run_smoke
     ;;
   *)
-    echo "Usage: $0 [gateway|frontend|antifraud|smoke|all]"
+    echo "Usage: $0 [gateway|gateway-integration|frontend|antifraud|smoke|e2e|all]"
     exit 1
     ;;
 esac

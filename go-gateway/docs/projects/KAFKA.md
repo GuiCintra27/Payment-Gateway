@@ -35,3 +35,14 @@ Headers:
 ## DLQ
 
 `transactions_result_dlq` recebe um envelope com erro e payload original.
+
+### Replay controlado
+
+Para reprocessar mensagens da DLQ de forma auditavel:
+
+```bash
+go run cmd/dlq-replay/main.go --dry-run --max 10
+go run cmd/dlq-replay/main.go --max 50 --operator local
+```
+
+Auditoria fica em `dlq_replay_audits` (gateway DB).

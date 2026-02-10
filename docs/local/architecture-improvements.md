@@ -10,7 +10,7 @@ Elevar o projeto para um case de backend pleno+, com fluxo de uso mais simples, 
 - Seguranca: API key com HMAC, rate limit por API key, CVV nao persistido, fallback de segredo restrito a dev.
 - Observabilidade: health/readiness no gateway, metrics no gateway e antifraude (API + worker), logs estruturados com `request_id`.
 - UX: onboarding com criacao de conta, auto-login, demo mode, welcome com API key exibida uma vez e fluxo inicial mais claro.
-- Gap atual para nivel pleno+: idempotencia HTTP no `POST /invoice`, outbox/inbox para publicar eventos de forma transacional, contrato versionado de eventos, CORS/headers de seguranca, OpenAPI e cobertura de testes de integracao/e2e do fluxo completo.
+- Gap atual para nivel pleno+: reforco de testes de integracao/e2e (cross-service) e observabilidade de logs persistidos em producao.
 
 ## Status do plano original (checklist)
 
@@ -26,16 +26,16 @@ Elevar o projeto para um case de backend pleno+, com fluxo de uso mais simples, 
 
 - [x] Padronizar erros em JSON (`code`, `message`, `details`).
 - [x] Adicionar endpoints de health (`GET /health`, `GET /ready`).
-- [ ] Implementar idempotencia no `POST /invoice` (header `Idempotency-Key`).
+- [x] Implementar idempotencia no `POST /invoice` (header `Idempotency-Key`).
 - [~] Validacao forte de payload (ja valida campos principais; ainda sem validacao mais robusta como Luhn e regras de cartao por bandeira).
 - [x] Mascarar dados de cartao (persistencia apenas de `last4`, sem CVV).
 
 ### 3) Mensageria e consistencia
 
-- [ ] Definir contrato de evento em JSON com schema version.
-- [~] Garantir deduplicacao no consumo de `transactions_result` (hoje por `event_id`; falta reforco por chave de negocio/contrato).
+- [x] Definir contrato de evento em JSON com schema version.
+- [x] Garantir deduplicacao no consumo de `transactions_result` (event_id + store dedicado).
 - [x] Aplicar retry com backoff no consumer e DLQ apos N tentativas.
-- [~] Estado da fatura como state machine com transicoes validas (ja ha validacoes e idempotencia parcial; falta trilha de auditoria de transicoes).
+- [x] Estado da fatura como state machine com transicoes validas + trilha de auditoria.
 
 ### 4) Antifraude (NestJS)
 
@@ -46,7 +46,7 @@ Elevar o projeto para um case de backend pleno+, com fluxo de uso mais simples, 
 ### 5) Observabilidade
 
 - [x] Logs estruturados no Go (`request_id` e contexto da requisicao).
-- [ ] Correlation ID de ponta a ponta (frontend -> gateway -> Kafka -> antifraude -> retorno).
+- [x] Correlation ID de ponta a ponta (frontend -> gateway -> Kafka -> antifraude -> retorno).
 - [x] Metricas basicas (latencia/erros no gateway e contadores no antifraude).
 
 ### 6) Seguranca
@@ -54,11 +54,11 @@ Elevar o projeto para um case de backend pleno+, com fluxo de uso mais simples, 
 - [x] Hash de API keys (HMAC).
 - [x] Rate limiting por API key.
 - [x] Nunca armazenar CVV e validar payload.
-- [ ] CORS limitado e headers de seguranca no gateway.
+- [x] CORS limitado e headers de seguranca no gateway.
 
 ### 7) Qualidade e DX
 
-- [ ] OpenAPI/Swagger para API Gateway.
+- [x] OpenAPI/Swagger para API Gateway.
 - [~] Testes unitarios/integracao/e2e (Nest possui base de testes; falta cobertura forte no gateway e testes de fluxo cross-service).
 - [x] Seeds e scripts para demo em 1 comando.
 
@@ -68,18 +68,18 @@ Detalhamento executavel P0/P1: `docs/local/implementation-plan-p0-p1.md`
 
 ### P0 - Alta prioridade (impacto direto em confiabilidade de produto)
 
-- [ ] Idempotencia HTTP no `POST /invoice` com `Idempotency-Key` + persistencia de resposta.
-- [ ] Outbox pattern no gateway para `pending_transactions` (evita perda de evento entre `save invoice` e `publish`).
-- [ ] Contrato de eventos versionado (`schema_version`) com validacao de payload no producer/consumer.
-- [ ] CORS restritivo + security headers no gateway (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, etc.).
+- [x] Idempotencia HTTP no `POST /invoice` com `Idempotency-Key` + persistencia de resposta.
+- [x] Outbox pattern no gateway para `pending_transactions` (evita perda de evento entre `save invoice` e `publish`).
+- [x] Contrato de eventos versionado (`schema_version`) com validacao de payload no producer/consumer.
+- [x] CORS restritivo + security headers no gateway (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, etc.).
 
 ### P1 - Media prioridade (forte sinal de maturidade tecnica)
 
-- [ ] Correlation ID fim a fim com propagacao em headers Kafka.
-- [ ] OpenAPI no gateway + colecao de requests de referencia.
-- [ ] Testes de integracao no gateway (DB + Kafka fake/real) para cenarios de falha e reprocessamento.
-- [ ] Teste e2e de fluxo completo (create account -> invoice pending -> antifraude -> settlement).
-- [ ] Hardening do antifraude para dinheiro em centavos/decimal (hoje `Float` no Prisma).
+- [x] Correlation ID fim a fim com propagacao em headers Kafka.
+- [x] OpenAPI no gateway + colecao de requests de referencia.
+- [~] Testes de integracao no gateway (DB + Kafka fake/real) para cenarios de falha e reprocessamento.
+- [~] Teste e2e de fluxo completo (create account -> invoice pending -> antifraude -> settlement).
+- [x] Hardening do antifraude para dinheiro em centavos/decimal (hoje `Float` no Prisma).
 
 ### P2 - Diferenciais pleno+ (portfolio/recrutador)
 
@@ -90,13 +90,16 @@ Detalhamento executavel P2: `docs/local/implementation-plan-p2.md`
 - [x] SLOs e dashboard simples (taxa de aprovacao, erro por endpoint, lag de processamento).
 - [x] Rotacao de segredo de API key/HMAC com estrategia de migracao segura.
 
-## Novas features sugeridas para aumentar sinal de senioridade
+### P3 - Operacao resiliente e maturidade de plataforma
 
-- [ ] Inbox pattern no antifraude para dedup de consumo por `event_id` (simetria com gateway).
-- [ ] Backfill/replay seguro da DLQ com comando administrativo controlado.
-- [ ] Limites por conta (ex.: maximo diario de volume) com politicas configuraveis.
-- [ ] Modo "chaos test" local (falhar publish/consumer) para demonstrar resiliencia.
-- [ ] Persistencia de logs em producao (ex.: Loki + Promtail + Grafana, com retention e filtros por `request_id`).
+Detalhamento executavel P3: `docs/local/implementation-plan-p3.md`
+
+- [~] Finalizar bateria de testes pendentes da P1 (integracao + e2e cross-service) antes do fechamento de release.
+- [x] Inbox pattern no antifraude para dedup de consumo por `event_id` (simetria com gateway).
+- [x] Backfill/replay seguro da DLQ com comando administrativo controlado.
+- [x] Limites por conta (ex.: maximo diario de volume) com politicas configuraveis.
+- [x] Modo "chaos test" local (falhar publish/consumer) para demonstrar resiliencia.
+- [x] Persistencia de logs em producao (ex.: Loki + Promtail + Grafana, com retention e filtros por `request_id`).
 
 ## Entregaveis recomendados para recrutadores
 

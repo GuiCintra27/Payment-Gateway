@@ -38,8 +38,16 @@ model FraudHistory {
   reason      FraudReason
   description String?
   createdAt   DateTime    @default(now())
-  updatedAt    DateTime      @updatedAt
+  updatedAt   DateTime    @updatedAt
   invoice     Invoice     @relation(fields: [invoiceId], references: [id])
+}
+
+model ProcessedEvent {
+  eventId   String               @id
+  status    ProcessedEventStatus
+  lastError String?
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
 }
 
 enum InvoiceStatus {
@@ -51,4 +59,10 @@ enum FraudReason {
   SUSPICIOUS_ACCOUNT
   UNUSUAL_PATTERN
   FREQUENT_HIGH_VALUE
+}
+
+enum ProcessedEventStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
 }

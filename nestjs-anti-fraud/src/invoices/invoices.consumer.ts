@@ -3,7 +3,8 @@ import { Ctx, EventPattern, Payload } from '@nestjs/microservices';
 import { FraudService } from './fraud/fraud.service';
 import { MetricsService } from '../metrics/metrics.service';
 import { ConfluentKafkaContext } from '../kafka/confluent-kafka-context';
-import { Prisma } from '@prisma/client';
+import { Prisma, ProcessedEventStatus } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 
 export type PendingInvoicesMessage = {
   schema_version?: number;
@@ -21,6 +22,7 @@ export class InvoicesConsumer {
   constructor(
     private fraudService: FraudService,
     private metricsService: MetricsService,
+    private prismaService: PrismaService,
   ) {}
 
   @EventPattern('pending_transactions')
@@ -39,6 +41,14 @@ export class InvoicesConsumer {
       );
       return;
     }
+    const shouldProcess = await this.claimEvent(message.event_id);
+    if (!shouldProcess) {
+      this.logger.warn(
+        `Duplicate event ignored: ${message.event_id} invoice_id=${message.invoice_id} request_id=${requestId || '-'}`,
+      );
+      return;
+    }
+
     const amountCents =
       typeof message.amount_cents === 'number'
         ? message.amount_cents
@@ -54,11 +64,13 @@ export class InvoicesConsumer {
         requestId,
       });
       this.metricsService.recordProcessed(result.fraudResult.hasFraud);
+      await this.markEventCompleted(message.event_id);
       this.logger.log(
         `Invoice processed: ${message.invoice_id} request_id=${requestId || '-'}`,
       );
     } catch (error) {
       this.metricsService.recordFailed();
+      await this.markEventFailed(message.event_id, error);
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       this.logger.error(
@@ -79,6 +91,51 @@ export class InvoicesConsumer {
       return raw.toString();
     }
     return raw;
+  }
+
+  private async claimEvent(eventId: string): Promise<boolean> {
+    try {
+      await this.prismaService.processedEvent.create({
+        data: { eventId, status: ProcessedEventStatus.PROCESSING },
+      });
+      return true;
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const existing = await this.prismaService.processedEvent.findUnique({
+          where: { eventId },
+        });
+        if (!existing) {
+          return true;
+        }
+        if (existing.status === ProcessedEventStatus.COMPLETED) {
+          return false;
+        }
+        await this.prismaService.processedEvent.update({
+          where: { eventId },
+          data: { status: ProcessedEventStatus.PROCESSING, lastError: null },
+        });
+        return true;
+      }
+      throw error;
+    }
+  }
+
+  private async markEventCompleted(eventId: string) {
+    await this.prismaService.processedEvent.update({
+      where: { eventId },
+      data: { status: ProcessedEventStatus.COMPLETED, lastError: null },
+    });
+  }
+
+  private async markEventFailed(eventId: string, error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    await this.prismaService.processedEvent.update({
+      where: { eventId },
+      data: { status: ProcessedEventStatus.FAILED, lastError: message },
+    });
   }
 }
 

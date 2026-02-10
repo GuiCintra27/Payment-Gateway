@@ -145,6 +145,20 @@ func (r *InvoiceRepository) FindByAccountID(accountID string) ([]*domain.Invoice
 	return invoices, nil
 }
 
+// GetDailyUsage retorna total e contagem de invoices criadas no intervalo informado.
+func (r *InvoiceRepository) GetDailyUsage(accountID string, start, end time.Time) (*domain.DailyUsage, error) {
+	var usage domain.DailyUsage
+	err := r.db.QueryRow(`
+		SELECT COALESCE(SUM(amount_cents), 0), COALESCE(COUNT(1), 0)
+		FROM invoices
+		WHERE account_id = $1 AND created_at >= $2 AND created_at < $3
+	`, accountID, start, end).Scan(&usage.TotalCents, &usage.Count)
+	if err != nil {
+		return nil, err
+	}
+	return &usage, nil
+}
+
 // UpdateStatus atualiza o status de uma fatura
 func (r *InvoiceRepository) UpdateStatus(invoice *domain.Invoice) error {
 	rows, err := r.db.Exec(

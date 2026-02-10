@@ -20,6 +20,30 @@ Logs:
 - `slog` com `request_id`, status, duracao e bytes.
 - `X-Request-Id` pode ser enviado pelo cliente.
 - `X-Request-Id` e propagado para o Kafka via header `x-request-id`.
+## Logs persistidos (Loki + Promtail)
+
+Para ambiente local/producao-like, a stack de logs usa Loki + Promtail + Grafana.
+
+Subir stack:
+
+```bash
+docker compose -f docker-compose.logging.yaml up -d
+```
+
+Grafana (logs): `http://localhost:3005` (admin/admin)
+
+Consulta sugerida:
+
+```
+{service=\"go-gateway\"} |= \"request_id=\"
+```
+
+Campos padronizados esperados:
+
+- `service`
+- `level`
+- `request_id`
+- `event_id` (quando houver)
 
 ## Antifraude (NestJS)
 

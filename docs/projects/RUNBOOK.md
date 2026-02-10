@@ -52,6 +52,17 @@ Portas:
 - Prometheus: `http://localhost:9090`
 - Grafana: `http://localhost:3004` (admin/admin)
 
+## Logging (Loki + Promtail + Grafana)
+
+```bash
+docker compose -f docker-compose.logging.yaml up -d
+```
+
+Portas:
+
+- Loki: `http://localhost:3100`
+- Grafana (logs): `http://localhost:3005` (admin/admin)
+
 ## Alertas basicos (sugeridos)
 
 - Taxa de erro 5xx acima de 1% por 5 minutos.

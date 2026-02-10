@@ -76,7 +76,9 @@ func main() {
 	accountService := service.NewAccountService(accountRepository)
 
 	invoiceRepository := repository.NewInvoiceRepository(db)
-	invoiceService := service.NewInvoiceService(invoiceRepository, *accountService, kafkaProducer)
+	accountLimitRepository := repository.NewAccountLimitRepository(db)
+	accountLimitService := service.NewAccountLimitService(accountLimitRepository, invoiceRepository)
+	invoiceService := service.NewInvoiceService(invoiceRepository, *accountService, kafkaProducer, accountLimitService)
 	demoService := service.NewDemoService(accountRepository, invoiceRepository)
 	healthHandler := handlers.NewHealthHandler(db, baseKafkaConfig.Brokers)
 	idempotencyRepository := repository.NewIdempotencyRepository(db)

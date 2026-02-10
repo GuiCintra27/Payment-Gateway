@@ -1,6 +1,8 @@
 package service
 
 import (
+	"time"
+
 	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/domain"
 	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/domain/events"
 	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/dto"
@@ -11,17 +13,20 @@ type InvoiceService struct {
 	invoiceRepository domain.InvoiceRepository
 	accountService    AccountService
 	kafkaProducer     KafkaProducerInterface
+	limitService      *AccountLimitService
 }
 
 func NewInvoiceService(
 	invoiceRepository domain.InvoiceRepository,
 	accountService AccountService,
 	kafkaProducer KafkaProducerInterface,
+	limitService *AccountLimitService,
 ) *InvoiceService {
 	return &InvoiceService{
 		invoiceRepository: invoiceRepository,
 		accountService:    accountService,
 		kafkaProducer:     kafkaProducer,
+		limitService:      limitService,
 	}
 }
 
@@ -29,6 +34,13 @@ func (s *InvoiceService) Create(input dto.CreateInvoiceInput) (*dto.InvoiceOutpu
 	accountOutput, err := s.accountService.FindByAPIKey(input.APIKey)
 	if err != nil {
 		return nil, err
+	}
+
+	amountCents := domain.AmountToCents(input.Amount)
+	if s.limitService != nil {
+		if err := s.limitService.Validate(accountOutput.ID, amountCents, time.Now()); err != nil {
+			return nil, err
+		}
 	}
 
 	invoice, err := dto.ToInvoice(input, accountOutput.ID)

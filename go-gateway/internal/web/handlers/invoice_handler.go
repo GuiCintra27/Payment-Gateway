@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"time"
@@ -157,6 +158,17 @@ func (h *InvoiceHandler) Create(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		default:
+			var limitErr domain.LimitExceededError
+			if errors.As(err, &limitErr) {
+				writeWithIdempotency(w, h.idempotencyStore, r, idempotencyKey, http.StatusUnprocessableEntity, response.ErrorResponse{
+					Code:    "limit_exceeded",
+					Message: "account limit exceeded",
+					Details: map[string]string{
+						"reason": limitErr.Reason,
+					},
+				})
+				return
+			}
 			writeWithIdempotency(w, h.idempotencyStore, r, idempotencyKey, http.StatusInternalServerError, response.ErrorResponse{
 				Code:    "internal_error",
 				Message: "internal server error",
