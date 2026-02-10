@@ -26,8 +26,8 @@ run_antifraud() {
 wait_for() {
   local url="$1"
   local label="$2"
-  local retries=30
-  local sleep_time=2
+  local retries="${3:-30}"
+  local sleep_time="${4:-2}"
 
   for _ in $(seq 1 "$retries"); do
     if curl -fsS "$url" >/dev/null; then
@@ -41,6 +41,11 @@ wait_for() {
   return 1
 }
 
+dump_logs() {
+  log "Dumping docker compose logs (nestjs, nestjs-worker)"
+  (cd "$ROOT_DIR" && docker compose logs --no-color --tail=200 nestjs nestjs-worker) || true
+}
+
 run_smoke() {
   log "Running smoke (docker compose)"
   if [[ ! -f "$ROOT_DIR/nestjs-anti-fraud/.env" ]]; then
@@ -52,10 +57,16 @@ run_smoke() {
       return 1
     fi
   fi
-  (cd "$ROOT_DIR" && docker compose up -d --build)
+  (
+    cd "$ROOT_DIR"
+    NESTJS_START_CMD=start NESTJS_WORKER_CMD=start:kafka docker compose up -d --build
+  )
 
   wait_for "http://localhost:8080/health" "gateway health"
-  wait_for "http://localhost:3001/metrics" "antifraud metrics"
+  if ! wait_for "http://localhost:3001/metrics" "antifraud metrics" 60 2; then
+    dump_logs
+    return 1
+  fi
 
   log "Smoke OK"
 }
