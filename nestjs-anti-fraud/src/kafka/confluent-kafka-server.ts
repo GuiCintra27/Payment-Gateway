@@ -32,6 +32,35 @@ import { isObservable, lastValueFrom, Observable, ReplaySubject } from 'rxjs';
 
 type MakePropRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type MakePropOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+type HeaderValue = string | Buffer | number | null | undefined;
+type HeaderMap = Record<string, HeaderValue> | undefined;
+
+const getHeaderString = (
+  headers: HeaderMap,
+  key: string,
+): string | undefined => {
+  if (!headers) {
+    return undefined;
+  }
+  const value = headers[key];
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (typeof value === 'number') {
+    return String(value);
+  }
+  if (Buffer.isBuffer(value)) {
+    return value.toString();
+  }
+  return undefined;
+};
+
+const ensureKafkaMessage = (message: Message): Message => {
+  if (!message.headers) {
+    message.headers = {};
+  }
+  return message;
+};
 
 export type KafkaServerOptions = {
   server: MakePropRequired<
@@ -162,10 +191,13 @@ export class ConfluentKafkaServer
         partition: payload.partition,
       }),
     );
-    const headers = rawMessage.headers;
-    const correlationId = headers?.[KafkaHeaders.CORRELATION_ID];
-    const replyTopic = headers?.[KafkaHeaders.REPLY_TOPIC];
-    const replyPartition = headers?.[KafkaHeaders.REPLY_PARTITION];
+    const headers = rawMessage.headers as HeaderMap;
+    const correlationId = getHeaderString(headers, KafkaHeaders.CORRELATION_ID);
+    const replyTopic = getHeaderString(headers, KafkaHeaders.REPLY_TOPIC);
+    const replyPartition = getHeaderString(
+      headers,
+      KafkaHeaders.REPLY_PARTITION,
+    );
 
     const packet = await this.deserializer.deserialize(rawMessage, { channel });
     const kafkaContext = new ConfluentKafkaContext([
@@ -177,18 +209,21 @@ export class ConfluentKafkaServer
       payload.heartbeat,
       this.producer,
     ]);
-    const handler = this.getHandlerByPattern(packet.pattern);
+    const pattern =
+      typeof packet.pattern === 'string'
+        ? packet.pattern
+        : String(packet.pattern);
+    const handler = this.getHandlerByPattern(pattern);
     // if the correlation id or reply topic is not set
     // then this is an event (events could still have correlation id)
     if (handler?.isEventHandler || !correlationId || !replyTopic) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return this.handleEvent(packet.pattern, packet, kafkaContext);
+      return this.handleEvent(pattern, packet, kafkaContext);
     }
 
     const publish = this.getPublisher(
-      replyTopic as string,
-      replyPartition as string,
-      correlationId as string,
+      replyTopic,
+      replyPartition,
+      correlationId,
     );
 
     if (!handler) {
@@ -212,13 +247,12 @@ export class ConfluentKafkaServer
     pattern: string,
     packet: ReadPacket,
     context: ConfluentKafkaContext,
-  ): Promise<any> {
+  ): Promise<void> {
     const handler = this.getHandlerByPattern(pattern);
     if (!handler) {
       return this.logger.error(NO_EVENT_HANDLER`${pattern}`);
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const resultOrStream = await handler(packet.data, context);
+    const resultOrStream: unknown = await handler(packet.data, context);
     if (isObservable(resultOrStream)) {
       await lastValueFrom(resultOrStream);
     }
@@ -226,21 +260,23 @@ export class ConfluentKafkaServer
 
   public getPublisher(
     replyTopic: string,
-    replyPartition: string,
+    replyPartition: string | undefined,
     correlationId: string,
-  ): (data: any) => Promise<RecordMetadata[]> {
-    return (data: any) =>
+  ): (data: OutgoingResponse) => Promise<RecordMetadata[]> {
+    return (data: OutgoingResponse) =>
       this.sendMessage(data, replyTopic, replyPartition, correlationId);
   }
 
   public async sendMessage(
     message: OutgoingResponse,
     replyTopic: string,
-    replyPartition: string,
+    replyPartition: string | undefined,
     correlationId: string,
   ): Promise<RecordMetadata[]> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const outgoingMessage = await this.serializer.serialize(message.response);
+    const responsePacket = message.response as ReadPacket;
+    const outgoingMessage = ensureKafkaMessage(
+      (await this.serializer.serialize(responsePacket)) as Message,
+    );
     this.assignReplyPartition(replyPartition, outgoingMessage);
     this.assignCorrelationIdHeader(correlationId, outgoingMessage);
     this.assignErrorHeader(message, outgoingMessage);
@@ -248,7 +284,7 @@ export class ConfluentKafkaServer
 
     return this.producer.send({
       topic: replyTopic,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
       messages: [outgoingMessage],
     });
   }
@@ -274,7 +310,7 @@ export class ConfluentKafkaServer
   }
 
   public assignReplyPartition(
-    replyPartition: string,
+    replyPartition: string | undefined,
     outgoingMessage: Message,
   ) {
     if (isNil(replyPartition)) {

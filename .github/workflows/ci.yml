@@ -14,6 +14,7 @@ jobs:
         with:
           go-version: "1.22"
           cache: true
+          cache-dependency-path: go-gateway/go.sum
       - run: ./scripts/ci.sh gateway
 
   frontend:
