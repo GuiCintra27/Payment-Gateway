@@ -25,12 +25,28 @@ function json_get_key() {
   if command -v jq >/dev/null 2>&1; then
     jq -r ".${key}"
   else
-    python3 - <<PY
-import json,sys
-data = json.loads(sys.stdin.read())
-print(data.get("${key}", ""))
+    local raw
+    raw=$(cat)
+    RAW="$raw" KEY="$key" python3 - <<'PY'
+import json
+import os
+
+raw = os.environ.get("RAW", "")
+key = os.environ.get("KEY", "")
+try:
+    data = json.loads(raw)
+except Exception:
+    data = {}
+print(data.get(key, ""))
 PY
   fi
+}
+
+function create_account() {
+  local email="$1"
+  curl -s -X POST http://localhost:8080/accounts \
+    -H 'Content-Type: application/json' \
+    -d "{\"name\":\"E2E\",\"email\":\"${email}\"}"
 }
 
 cd "$ROOT_DIR"
@@ -38,14 +54,44 @@ cd "$ROOT_DIR"
 echo "[e2e] Subindo stack"
 docker compose up -d --build
 
-wait_for_url "http://localhost:8080/health" 60
+wait_for_url "http://localhost:8080/health" 120
+wait_for_url "http://localhost:8080/ready" 120
+wait_for_url "http://localhost:3001/metrics" 120
+
+echo "[e2e] Aguardando /accounts ficar disponivel"
+for _ in {1..30}; do
+  code=$(curl -s -o /tmp/e2e_warmup.json -w "%{http_code}" -X POST http://localhost:8080/accounts \
+    -H 'Content-Type: application/json' \
+    -d '{"name":"E2E-Warmup","email":"e2e-warmup@local"}')
+  if [[ "$code" == "201" || "$code" == "409" ]]; then
+    break
+  fi
+  sleep 2
+done
 
 echo "[e2e] Criando conta"
-ACCOUNT_JSON=$(curl -fsS -X POST http://localhost:8080/accounts \
-  -H 'Content-Type: application/json' \
-  -d '{"name":"E2E","email":"e2e@local"}')
+EMAIL="e2e+$(date +%s)@local"
+ACCOUNT_JSON=""
+for _ in {1..10}; do
+  ACCOUNT_JSON=$(create_account "$EMAIL")
+  if [[ -n "$ACCOUNT_JSON" && "$ACCOUNT_JSON" == *"api_key"* ]]; then
+    break
+  fi
+  echo "[e2e] create account retry: $ACCOUNT_JSON" >&2
+  sleep 2
+done
+
+if [[ -z "$ACCOUNT_JSON" ]]; then
+  echo "E2E failed: empty response on account creation" >&2
+  exit 1
+fi
 API_KEY=$(echo "$ACCOUNT_JSON" | json_get_key "api_key")
 ACCOUNT_ID=$(echo "$ACCOUNT_JSON" | json_get_key "id")
+if [[ -z "$API_KEY" || -z "$ACCOUNT_ID" ]]; then
+  echo "E2E failed: invalid account response" >&2
+  echo "$ACCOUNT_JSON" >&2
+  exit 1
+fi
 
 echo "[e2e] Criando fatura pending"
 INVOICE_JSON=$(curl -fsS -X POST http://localhost:8080/invoice \

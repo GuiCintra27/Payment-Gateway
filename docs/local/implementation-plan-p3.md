@@ -13,7 +13,7 @@ Escopo da P3:
 6. Persistencia de logs para ambiente de producao
 
 ## Status de implementacao (2026-02-10)
-- [~] `P3.0` Fechamento de testes P1: integracao concluida; e2e script pendente (fixar email fixo).
+- [x] `P3.0` Fechamento de testes P1: integracao concluida; e2e script validado.
 - [x] `P3.1` Inbox no antifraude (dedup com tabela `ProcessedEvent`).
 - [x] `P3.2` Replay de DLQ (CLI + auditoria em DB).
 - [x] `P3.3` Limites por conta (policy + validacao no gateway).
@@ -164,7 +164,7 @@ Persistir logs estruturados para busca historica e troubleshooting por `request_
 ## Testes e validacao da P3
 
 ### Gate P3
-- [~] P1 pendencias de testes fechadas (integracao OK; e2e script falhando por conta fixa)
+- [x] P1 pendencias de testes fechadas (integracao OK; e2e OK)
 
 ### Validacao funcional
 - [x] Inbox evita reprocessamento duplicado (duplicate event ignorado)
@@ -177,7 +177,7 @@ Persistir logs estruturados para busca historica e troubleshooting por `request_
 
 ### P3.0 — Fechamento P1
 - `./scripts/ci.sh gateway` e `./scripts/ci.sh gateway-integration` passaram.
-- `./scripts/e2e.sh` falhou por conta fixa `e2e@local` ja existente (curl retorna `409` e o script nao trata).
+- `./scripts/e2e.sh` passou apos ajuste de email dinamico + warm-up.
 
 ### P3.1 — Inbox antifraude
 - Duplicata enviada em `pending_transactions` com mesmo `event_id`.

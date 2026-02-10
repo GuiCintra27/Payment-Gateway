@@ -23,7 +23,7 @@ Este plano detalha as tasks P0 e P1 para elevar a confiabilidade, seguranca e si
 - Testes: `./scripts/ci.sh gateway` e `./scripts/ci.sh gateway-integration` passaram.
 
 Observacoes:
-- `./scripts/e2e.sh` falhou por conta fixa `e2e@local` ja existente (curl retorna `409` e o script nao trata). Fluxo e2e foi validado manualmente com email unico (create account -> create pending invoice -> antifraude -> status aprovado).
+- `./scripts/e2e.sh` agora usa email dinamico + warm-up de `/accounts` e passou (create account -> create pending invoice -> antifraude -> status aprovado).
 - A validacao incluiu os ajustes de tipagem no Kafka do antifraude feitos na P1/P2.
 
 ## Como testar (checklist)
