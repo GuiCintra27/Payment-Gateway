@@ -18,7 +18,7 @@ export class PublishProcessedInvoiceListener implements OnModuleInit {
   @OnEvent('invoice.processed')
   async handle(event: InvoiceProcessedEvent) {
     const headers = event.requestId
-      ? [{ key: 'x-request-id', value: Buffer.from(event.requestId) }]
+      ? { 'x-request-id': event.requestId }
       : undefined;
 
     await this.kafkaProducer.send({

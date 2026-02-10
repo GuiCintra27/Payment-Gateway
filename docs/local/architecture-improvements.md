@@ -94,6 +94,7 @@ Detalhamento executavel P0/P1: `docs/local/implementation-plan-p0-p1.md`
 - [ ] Backfill/replay seguro da DLQ com comando administrativo controlado.
 - [ ] Limites por conta (ex.: maximo diario de volume) com politicas configuraveis.
 - [ ] Modo "chaos test" local (falhar publish/consumer) para demonstrar resiliencia.
+- [ ] Persistencia de logs em producao (ex.: Loki + Promtail + Grafana, com retention e filtros por `request_id`).
 
 ## Entregaveis recomendados para recrutadores
 
