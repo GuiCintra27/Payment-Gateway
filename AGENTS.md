@@ -128,3 +128,13 @@ curl http://localhost:8080/health
 curl http://localhost:8080/ready
 curl http://localhost:3001/metrics
 ```
+
+## Branch workflow (P2 and higher)
+
+Use this flow before opening PRs:
+
+1. Checkout the feature branch (ex: `p2-implementation`).
+2. Merge `master` into the feature branch and resolve conflicts there.
+3. Run validations on the feature branch.
+4. Open PR from feature branch to `master`.
+5. Merge after review/approval.
