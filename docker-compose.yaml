@@ -127,7 +127,7 @@ services:
     user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
     env_file:
       - ./nestjs-anti-fraud/.env
-    command: sh -c "npm install && npx prisma migrate deploy"
+    command: sh -c "npm ci --no-audit --no-fund && npx prisma migrate deploy"
     volumes:
       - ./nestjs-anti-fraud:/home/node/app
       - nestjs_node_modules:/home/node/app/node_modules
