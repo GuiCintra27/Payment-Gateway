@@ -7,7 +7,20 @@ Este plano detalha as tasks P0 e P1 para elevar a confiabilidade, seguranca e si
 
 ## Status de implementacao
 - Implementado: idempotencia no `POST /invoice`, outbox no gateway, contrato de eventos v2, CORS + headers de seguranca, correlation ID ponta a ponta, OpenAPI (Swaggo), testes basicos (unit + e2e script), antifraude com `Decimal`.
-- Pendente: rodar migracoes do gateway e do antifraude em ambiente local/CI e validar e2e com Kafka/Postgres ativos.
+- Pendente: CI automatizada (GitHub Actions) e testes integrados no antifraude (nao ha specs no repo).
+
+## Validacao executada (P0/P1)
+- Idempotencia: mesma `Idempotency-Key` + mesmo payload retornou a mesma fatura; payload diferente retornou `409`.
+- Persistencia: `idempotency_keys` gravou `status=completed`, `status_code=201` e `expires_at` com TTL de 24h.
+- Outbox: evento `pending_transaction` foi criado e enviado; payload contem `schema_version=2` e `amount_cents`.
+- Correlation ID: `X-Request-Id` propagou para `outbox_events.correlation_id` e logs do antifraude.
+- Async antifraude: invoice pendente foi processada pelo worker e passou para `approved`.
+- Resiliencia do outbox: com Kafka desligado o evento ficou pendente/processando, e foi enviado apos o broker subir.
+- OpenAPI: `GET /swagger/index.html` retornou `200`.
+- CORS/headers: `OPTIONS /invoice` retornou `204` com `Access-Control-Allow-Origin` e headers de seguranca.
+- Metrics: `GET /metrics` respondeu em gateway, antifraude HTTP e antifraude worker.
+
+Observacao: o worker do antifraude precisou de ajuste de tipos nos headers Kafka para compilar. A validacao inclui essa correcao.
 
 ## Como testar (checklist)
 
@@ -19,23 +32,28 @@ Este plano detalha as tasks P0 e P1 para elevar a confiabilidade, seguranca e si
 - Rodar migracoes (gateway): aplicar `go-gateway/migrations/000004_add_idempotency_and_outbox.*` no Postgres do gateway.
 - Health: `curl http://localhost:8080/health`
 - Swagger: `http://localhost:8080/swagger/index.html`
+ - Metrics: `curl http://localhost:8080/metrics`
 
 ### Idempotencia
 - Criar fatura com `Idempotency-Key` e repetir a mesma request.
 - Esperado: mesma resposta (status + body) sem criar nova fatura.
 - Repetir com payload diferente e mesma key -> `409 Conflict`.
+ - Confirmar persistencia em `idempotency_keys` com `status=completed`.
 
 ### Outbox
 - Criar fatura `pending` (valor alto) e garantir que o evento entra na outbox e e publicado.
 - Em falha de Kafka, evento permanece `pending/failed` e e reenviado.
+ - Verificar `schema_version` e `amount_cents` no payload.
 
 ### Correlation ID end-to-end
 - Enviar `X-Request-Id` no request do gateway.
 - Verificar logs do antifraude e header `x-request-id` no `transactions_result`.
+ - Confirmar `correlation_id` no `outbox_events`.
 
 ### Antifraude Decimal
 - Rodar migracao Prisma: `npx prisma migrate dev` (ou `deploy`).
 - Verificar que `Invoice.amount` esta como Decimal no banco.
+ - Metrics worker: `curl http://localhost:3101/metrics`
 
 ### E2E
 - Script completo: `./scripts/e2e.sh`
