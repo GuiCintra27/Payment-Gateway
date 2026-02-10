@@ -145,7 +145,7 @@ services:
     user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
     env_file:
       - ./nestjs-anti-fraud/.env
-    command: sh -c "npm ci --no-audit --no-fund && npm run ${NESTJS_START_CMD:-start:dev}"
+    command: sh -c "npm run ${NESTJS_START_CMD:-start:dev}"
     volumes:
       - ./nestjs-anti-fraud:/home/node/app
       - nestjs_node_modules:/home/node/app/node_modules
@@ -171,7 +171,7 @@ services:
       - ./nestjs-anti-fraud/.env
     environment:
       ANTIFRAUD_WORKER_PORT: 3101
-    command: sh -c "npm ci --no-audit --no-fund && npm run ${NESTJS_WORKER_CMD:-start:kafka:dev}"
+    command: sh -c "npm run ${NESTJS_WORKER_CMD:-start:kafka:dev}"
     volumes:
       - ./nestjs-anti-fraud:/home/node/app
       - nestjs_node_modules:/home/node/app/node_modules
