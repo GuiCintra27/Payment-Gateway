@@ -59,7 +59,7 @@ run_smoke() {
   fi
   (
     cd "$ROOT_DIR"
-    NESTJS_START_CMD=start NESTJS_WORKER_CMD=start:kafka docker compose up -d --build
+    NESTJS_START_CMD=start NESTJS_WORKER_CMD=start:kafka:dev docker compose up -d --build
   )
 
   wait_for "http://localhost:8080/health" "gateway health"
