@@ -5,6 +5,7 @@
 Endpoint:
 
 - `GET /metrics` (expvar JSON)
+- `GET /metrics/prom` (Prometheus)
 
 Principais metricas:
 
@@ -26,6 +27,8 @@ Endpoints:
 
 - `GET /metrics` (HTTP app, porta 3001)
 - `GET /metrics` (worker Kafka, porta 3101)
+- `GET /metrics/prom` (HTTP app, porta 3001)
+- `GET /metrics/prom` (worker Kafka, porta 3101)
 
 O worker Kafka concentra os contadores de processamento.
 
@@ -50,3 +53,10 @@ Payload exemplo (worker Kafka):
 ## Healthchecks
 
 - Gateway: `GET /health` (liveness) e `GET /ready` (DB + Kafka).
+
+## SLOs iniciais (proposta)
+
+- Disponibilidade do Gateway: 99.5% mensal (5xx / total).
+- Latencia p95 de `POST /invoice`: <= 300ms (modo local/demo).
+- Taxa de falha do antifraude: <= 1% (failed_total / processed_total).
+- Lag de processamento: tempo entre `pending_published` e `approved/rejected` <= 5s (modo local).

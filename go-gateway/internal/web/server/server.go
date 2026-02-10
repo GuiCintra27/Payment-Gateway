@@ -9,6 +9,7 @@ import (
 	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/web/handlers"
 	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/web/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
@@ -64,12 +65,14 @@ func (s *Server) ConfigureRoutes() {
 	s.router.Get("/health", s.healthHandler.Liveness)
 	s.router.Get("/ready", s.healthHandler.Readiness)
 	s.router.Handle("/metrics", expvar.Handler())
+	s.router.Handle("/metrics/prom", promhttp.Handler())
 
 	s.router.Group(func(r chi.Router) {
 		r.Use(authMiddleware.Authenticate)
 		r.Use(s.rateLimit.Limit)
 		r.Post("/invoice", invoiceHandler.Create)
 		r.Get("/invoice/{id}", invoiceHandler.GetByID)
+		r.Get("/invoice/{id}/events", invoiceHandler.ListEvents)
 		r.Get("/invoice", invoiceHandler.ListByAccount)
 	})
 }

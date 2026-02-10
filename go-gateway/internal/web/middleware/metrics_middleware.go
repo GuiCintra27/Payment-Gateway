@@ -21,11 +21,14 @@ func Metrics(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		metrics.HTTP.IncInFlight()
+		metrics.Prom.IncInFlight()
 		defer metrics.HTTP.DecInFlight()
+		defer metrics.Prom.DecInFlight()
 
 		recorder := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
 		next.ServeHTTP(recorder, r)
 
 		metrics.HTTP.Observe(r.Method, r.URL.Path, recorder.status, time.Since(start))
+		metrics.Prom.Observe(r.Method, r.URL.Path, recorder.status, time.Since(start))
 	})
 }

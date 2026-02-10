@@ -19,7 +19,7 @@ async function bootstrap() {
   await app.startAllMicroservices();
   const port = process.env.ANTIFRAUD_WORKER_PORT || 3101;
   await app.listen(port);
-  // eslint-disable-next-line no-console
+
   console.log(`Kafka worker running with metrics on port ${port}`);
 }
-bootstrap();
+void bootstrap();

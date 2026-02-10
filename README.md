@@ -99,12 +99,24 @@ docker compose -f docker-compose.infra.yaml down
 - Gateway API: http://localhost:8080
 - Swagger: http://localhost:8080/swagger/index.html
 - Gateway metrics: http://localhost:8080/metrics
+- Gateway metrics (Prometheus): http://localhost:8080/metrics/prom
 - Antifraude API: http://localhost:3001
 - Antifraude metrics: http://localhost:3001/metrics
+- Antifraude metrics (Prometheus): http://localhost:3001/metrics/prom
 - Antifraude worker metrics: http://localhost:3101/metrics
+- Antifraude worker metrics (Prometheus): http://localhost:3101/metrics/prom
 - Postgres gateway: localhost:5434
 - Postgres antifraude: localhost:5433
 - Kafka: localhost:9092
+
+## Monitoring
+
+```bash
+docker compose -f docker-compose.monitoring.yaml up -d
+```
+
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3004 (admin/admin)
 
 ## Demo rapido
 
@@ -138,6 +150,7 @@ Por servico:
 ## Testes
 
 - E2E (stack completa): `./scripts/e2e.sh`
+- CI local (lint/test/smoke): `./scripts/ci.sh`
 
 ## Troubleshooting rapido
 

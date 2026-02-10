@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/domain"
 	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/dto"
+	"github.com/GuiCintra27/payment-gateway/go-gateway/internal/security"
 )
 
 // AccountService implementa a lógica de negócios para operações com Account
@@ -39,6 +40,12 @@ func (s *AccountService) CreateAccount(input dto.CreateAccountInput) (*dto.Accou
 	if existingByEmail != nil {
 		return nil, domain.ErrEmailAlreadyExists
 	}
+
+	keyID, err := security.ActiveKeyID()
+	if err != nil {
+		return nil, err
+	}
+	account.APIKeyKeyID = keyID
 
 	err = s.repository.Save(account)
 	if err != nil {

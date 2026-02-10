@@ -54,6 +54,8 @@ Veja `nestjs-anti-fraud/.env.example`:
 - `GET /invoices/:id`
 - `GET /metrics` (HTTP)
 - `GET /metrics` (worker Kafka, porta 3101)
+- `GET /metrics/prom` (HTTP)
+- `GET /metrics/prom` (worker Kafka, porta 3101)
 
 ## Documentacao
 

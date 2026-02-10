@@ -107,6 +107,35 @@ curl http://localhost:8080/invoice/<id> \
   -H 'X-API-KEY: <api_key>'
 ```
 
+## GET /invoice/{id}/events
+
+```bash
+curl http://localhost:8080/invoice/<id>/events \
+  -H 'X-API-KEY: <api_key>'
+```
+
+Response (200):
+
+```json
+[
+  {
+    "id": "uuid",
+    "invoice_id": "uuid",
+    "event_type": "created",
+    "to_status": "pending",
+    "created_at": "2025-01-10T12:00:00Z"
+  },
+  {
+    "id": "uuid",
+    "invoice_id": "uuid",
+    "event_type": "pending_published",
+    "from_status": "pending",
+    "to_status": "pending",
+    "created_at": "2025-01-10T12:00:01Z"
+  }
+]
+```
+
 ## Erros
 
 Erros seguem o formato:

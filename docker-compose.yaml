@@ -83,7 +83,8 @@ services:
       DB_NAME: gateway
       DB_SSL_MODE: disable
       HTTP_PORT: 8080
-      API_KEY_SECRET: change-me
+      API_KEY_SECRETS: ${API_KEY_SECRETS:-v1:change-me}
+      API_KEY_ACTIVE_KEY_ID: ${API_KEY_ACTIVE_KEY_ID:-v1}
       API_RATE_LIMIT_PER_MINUTE: 60
       API_RATE_LIMIT_BURST: 10
       KAFKA_BROKER: kafka:29092
@@ -131,6 +132,8 @@ services:
       - ./nestjs-anti-fraud:/home/node/app
       - nestjs_node_modules:/home/node/app/node_modules
     depends_on:
+      nestjs-permissions-init:
+        condition: service_completed_successfully
       nestjs-db:
         condition: service_healthy
     restart: "no"
@@ -149,6 +152,8 @@ services:
     ports:
       - "3001:3000"
     depends_on:
+      nestjs-permissions-init:
+        condition: service_completed_successfully
       nestjs-migrate:
         condition: service_completed_successfully
       nestjs-db:
@@ -173,6 +178,8 @@ services:
     ports:
       - "3101:3101"
     depends_on:
+      nestjs-permissions-init:
+        condition: service_completed_successfully
       nestjs-migrate:
         condition: service_completed_successfully
       kafka:
@@ -193,9 +200,29 @@ services:
     ports:
       - "3002:3000"
     depends_on:
+      frontend-permissions-init:
+        condition: service_completed_successfully
       go-gateway:
         condition: service_started
     restart: unless-stopped
+
+  nestjs-permissions-init:
+    image: alpine:3.19
+    user: "0:0"
+    command: sh -c "mkdir -p /home/node/app/dist /home/node/app/node_modules && chown -R ${LOCAL_UID:-1001}:${LOCAL_GID:-1001} /home/node/app/dist /home/node/app/node_modules"
+    volumes:
+      - ./nestjs-anti-fraud:/home/node/app
+      - nestjs_node_modules:/home/node/app/node_modules
+    restart: "no"
+
+  frontend-permissions-init:
+    image: alpine:3.19
+    user: "0:0"
+    command: sh -c "mkdir -p /home/node/app/.next /home/node/app/node_modules && chown -R ${LOCAL_UID:-1001}:${LOCAL_GID:-1001} /home/node/app/.next /home/node/app/node_modules"
+    volumes:
+      - ./next-frontend:/home/node/app
+      - next_node_modules:/home/node/app/node_modules
+    restart: "no"
 
 volumes:
   gateway_postgres_data:

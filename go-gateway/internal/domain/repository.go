@@ -10,10 +10,11 @@ type AccountRepository interface {
 }
 
 type InvoiceRepository interface {
-	Save(invoice *Invoice) error
+	Save(invoice *Invoice, requestID string) error
 	SaveWithOutbox(invoice *Invoice, eventType string, payload []byte, correlationID string) error
 	FindByID(id string) (*Invoice, error)
 	FindByAccountID(accountID string) ([]*Invoice, error)
 	UpdateStatus(invoice *Invoice) error
-	ApplyTransactionResult(invoiceID string, status Status) error
+	ApplyTransactionResult(invoiceID string, status Status, requestID string) error
+	ListEventsByInvoiceID(invoiceID string) ([]*InvoiceEvent, error)
 }

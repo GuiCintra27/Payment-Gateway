@@ -4,8 +4,10 @@
 
 - A API key e gerada no gateway com `crypto/rand`.
 - No banco do gateway, a chave e armazenada como HMAC-SHA256.
-- O segredo e definido em `API_KEY_SECRET` (arquivo `.env`).
-- Sem `API_KEY_SECRET`, o gateway falha, exceto quando `ENV=dev`/`APP_ENV=dev`.
+- Segredos sao definidos via `API_KEY_SECRETS` (ex.: `v1:secret1,v2:secret2`).
+- `API_KEY_ACTIVE_KEY_ID` indica o segredo usado para novas chaves.
+- Em setups simples, `API_KEY_SECRET` ainda funciona como `v1`.
+- Sem segredo configurado, o gateway falha, exceto quando `ENV=dev`/`APP_ENV=dev`.
 
 ## Rate limit
 
@@ -29,5 +31,5 @@
 
 ## Recomendacoes
 
-- Gere um `API_KEY_SECRET` forte em ambientes nao locais.
+- Gere segredos fortes e mantenha `API_KEY_ACTIVE_KEY_ID` sincronizado.
 - Mantenha `.env` fora do controle de versao.

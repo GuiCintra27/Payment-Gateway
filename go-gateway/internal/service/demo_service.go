@@ -102,7 +102,7 @@ func (s *DemoService) seedInvoices(account *domain.Account) error {
 		invoice.CreatedAt = createdAt
 		invoice.UpdatedAt = createdAt.Add(2 * time.Hour)
 
-		if err := s.invoiceRepository.Save(invoice); err != nil {
+		if err := s.invoiceRepository.Save(invoice, ""); err != nil {
 			return err
 		}
 

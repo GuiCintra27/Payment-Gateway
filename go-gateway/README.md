@@ -32,7 +32,9 @@ go run cmd/app/main.go
 Veja `go-gateway/.env.example`:
 
 - `HTTP_PORT`
-- `API_KEY_SECRET`
+- `API_KEY_SECRETS`
+- `API_KEY_ACTIVE_KEY_ID`
+- `API_KEY_SECRET` (legado)
 - `API_RATE_LIMIT_PER_MINUTE`
 - `API_RATE_LIMIT_BURST`
 - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_SSL_MODE`
@@ -51,9 +53,11 @@ Veja `go-gateway/.env.example`:
 - `POST /invoice`
 - `GET /invoice`
 - `GET /invoice/{id}`
+- `GET /invoice/{id}/events`
 - `GET /health`
 - `GET /ready`
 - `GET /metrics`
+- `GET /metrics/prom`
 - `GET /swagger/index.html`
 
 ## Documentacao

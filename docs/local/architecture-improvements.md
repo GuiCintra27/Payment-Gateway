@@ -83,10 +83,12 @@ Detalhamento executavel P0/P1: `docs/local/implementation-plan-p0-p1.md`
 
 ### P2 - Diferenciais pleno+ (portfolio/recrutador)
 
-- [ ] Auditoria de transicoes de invoice (`invoice_events`) com timeline real no frontend.
-- [ ] CI com pipeline minima: lint + test + smoke test de compose.
-- [ ] SLOs e dashboard simples (taxa de aprovacao, erro por endpoint, lag de processamento).
-- [ ] Rotacao de segredo de API key/HMAC com estrategia de migracao segura.
+Detalhamento executavel P2: `docs/local/implementation-plan-p2.md`
+
+- [x] Auditoria de transicoes de invoice (`invoice_events`) com timeline real no frontend.
+- [x] CI com pipeline minima: lint + test + smoke test de compose.
+- [x] SLOs e dashboard simples (taxa de aprovacao, erro por endpoint, lag de processamento).
+- [x] Rotacao de segredo de API key/HMAC com estrategia de migracao segura.
 
 ## Novas features sugeridas para aumentar sinal de senioridade
 

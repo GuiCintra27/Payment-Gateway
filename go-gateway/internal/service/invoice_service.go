@@ -40,6 +40,11 @@ func (s *InvoiceService) Create(input dto.CreateInvoiceInput) (*dto.InvoiceOutpu
 		return nil, err
 	}
 
+	requestID := ""
+	if value, ok := input.Metadata["request_id"]; ok {
+		requestID = value
+	}
+
 	// Se o status for pending, significa que e uma transacao de alto valor.
 	if invoice.Status == domain.StatusPending {
 		pendingTransaction := events.NewPendingTransaction(
@@ -63,7 +68,7 @@ func (s *InvoiceService) Create(input dto.CreateInvoiceInput) (*dto.InvoiceOutpu
 			return nil, err
 		}
 	} else {
-		if err := s.invoiceRepository.Save(invoice); err != nil {
+		if err := s.invoiceRepository.Save(invoice, requestID); err != nil {
 			return nil, err
 		}
 	}
@@ -121,6 +126,29 @@ func (s *InvoiceService) ListByAccountAPIKey(apiKey string) ([]*dto.InvoiceOutpu
 }
 
 // ProcessTransactionResult processa o resultado de uma transação após análise de fraude
-func (s *InvoiceService) ProcessTransactionResult(invoiceID string, status domain.Status) error {
-	return s.invoiceRepository.ApplyTransactionResult(invoiceID, status)
+func (s *InvoiceService) ProcessTransactionResult(invoiceID string, status domain.Status, requestID string) error {
+	return s.invoiceRepository.ApplyTransactionResult(invoiceID, status, requestID)
+}
+
+// ListEventsByInvoiceID retorna eventos de uma fatura garantindo autorizacao.
+func (s *InvoiceService) ListEventsByInvoiceID(invoiceID, apiKey string) ([]*dto.InvoiceEventOutput, error) {
+	invoice, err := s.invoiceRepository.FindByID(invoiceID)
+	if err != nil {
+		return nil, err
+	}
+
+	accountOutput, err := s.accountService.FindByAPIKey(apiKey)
+	if err != nil {
+		return nil, err
+	}
+
+	if invoice.AccountID != accountOutput.ID {
+		return nil, domain.ErrUnauthorizedAccess
+	}
+
+	events, err := s.invoiceRepository.ListEventsByInvoiceID(invoiceID)
+	if err != nil {
+		return nil, err
+	}
+	return dto.FromInvoiceEvents(events), nil
 }

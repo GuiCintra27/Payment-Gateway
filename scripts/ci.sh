@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCOPE="${1:-${CI_SCOPE:-all}}"
+
+log() {
+  printf "\n[ci] %s\n" "$1"
+}
+
+run_gateway() {
+  log "Running Go tests (gateway)"
+  (cd "$ROOT_DIR/go-gateway" && go test ./...)
+}
+
+run_frontend() {
+  log "Running frontend lint (next-frontend)"
+  (cd "$ROOT_DIR/next-frontend" && npm ci && npm run lint)
+}
+
+run_antifraud() {
+  log "Running antifraud lint + tests (nestjs-anti-fraud)"
+  (cd "$ROOT_DIR/nestjs-anti-fraud" && npm ci && npm run lint && npm test)
+}
+
+wait_for() {
+  local url="$1"
+  local label="$2"
+  local retries=30
+  local sleep_time=2
+
+  for _ in $(seq 1 "$retries"); do
+    if curl -fsS "$url" >/dev/null; then
+      log "OK: $label"
+      return 0
+    fi
+    sleep "$sleep_time"
+  done
+
+  log "FAIL: $label"
+  return 1
+}
+
+run_smoke() {
+  log "Running smoke (docker compose)"
+  (cd "$ROOT_DIR" && docker compose up -d --build)
+
+  wait_for "http://localhost:8080/health" "gateway health"
+  wait_for "http://localhost:3001/metrics" "antifraud metrics"
+
+  log "Smoke OK"
+}
+
+cleanup() {
+  if [[ "$SCOPE" == "smoke" || "$SCOPE" == "all" ]]; then
+    log "Cleaning up docker compose"
+    (cd "$ROOT_DIR" && docker compose down)
+  fi
+}
+
+trap cleanup EXIT
+
+case "$SCOPE" in
+  gateway)
+    run_gateway
+    ;;
+  frontend)
+    run_frontend
+    ;;
+  antifraud)
+    run_antifraud
+    ;;
+  smoke)
+    run_smoke
+    ;;
+  all)
+    run_gateway
+    run_frontend
+    run_antifraud
+    run_smoke
+    ;;
+  *)
+    echo "Usage: $0 [gateway|frontend|antifraud|smoke|all]"
+    exit 1
+    ;;
+esac

@@ -16,6 +16,7 @@ type Account struct {
 	Name         string
 	Email        string
 	APIKey       string
+	APIKeyKeyID  string
 	BalanceCents int64
 	mu           sync.RWMutex
 	CreatedAt    time.Time
@@ -49,6 +50,7 @@ func NewAccount(name, email string) (*Account, error) {
 		Email:        email,
 		BalanceCents: 0,
 		APIKey:       apiKey,
+		APIKeyKeyID:  "",
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}

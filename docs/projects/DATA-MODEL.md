@@ -8,6 +8,7 @@
 - `name` (varchar)
 - `email` (unique)
 - `api_key` (unique, HMAC hash)
+- `api_key_key_id` (varchar)
 - `balance_cents` (bigint)
 - `created_at`, `updated_at`
 
@@ -42,6 +43,21 @@ Indexes:
 Indexes:
 
 - `idx_processed_events_invoice_id`
+
+### invoice_events
+
+- `id` (uuid, pk)
+- `invoice_id` (uuid)
+- `event_type` (varchar)
+- `from_status`, `to_status` (nullable)
+- `metadata` (jsonb)
+- `request_id` (nullable)
+- `created_at`
+
+Indexes:
+
+- `idx_invoice_events_invoice_id`
+- `idx_invoice_events_created_at`
 
 ## Antifraude (Postgres via Prisma)
 

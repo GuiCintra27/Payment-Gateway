@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Plus, Eye, ChevronLeft, ChevronRight, Receipt, TrendingUp, Clock } from "lucide-react"
 import Link from "next/link"
 import { StatusBadge } from "@/components/StatusBadge"
@@ -64,7 +64,6 @@ export async function InvoiceList({ page, size }: InvoiceListProps) {
   // Calculate stats
   const approvedCount = invoices.filter((i: { status: string }) => i.status === "approved").length
   const pendingCount = invoices.filter((i: { status: string }) => i.status === "pending").length
-  const rejectedCount = invoices.filter((i: { status: string }) => i.status === "rejected").length
   const totalAmount = invoices.reduce((sum: number, i: { amount: number }) => sum + i.amount, 0)
 
   return (

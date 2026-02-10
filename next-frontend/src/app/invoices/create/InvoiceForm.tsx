@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { CreditCard, Info, Loader2, DollarSign, FileText, Lock } from "lucide-react"
+import { CreditCard, Info, Loader2, FileText, Lock } from "lucide-react"
 import Link from "next/link"
 
 import { Input } from "@/components/ui/input"

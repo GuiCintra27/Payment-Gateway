@@ -59,7 +59,8 @@ export class InvoicesConsumer {
       );
     } catch (error) {
       this.metricsService.recordFailed();
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       this.logger.error(
         `Invoice failed: ${message.invoice_id} request_id=${requestId || '-'}`,
         errorMessage,

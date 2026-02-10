@@ -353,6 +353,8 @@ export class ConfluentKafkaServer
   }
 
   on(event: any, callback: any): any {
+    void event;
+    void callback;
     throw new Error('Not implemented');
   }
   /**

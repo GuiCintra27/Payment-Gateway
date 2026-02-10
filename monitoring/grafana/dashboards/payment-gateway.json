@@ -1,0 +1,62 @@
+{
+  "uid": "payment-gateway",
+  "title": "Payment Gateway - Overview",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Gateway RPS",
+      "datasource": { "type": "prometheus", "uid": "PROM" },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total[5m]))",
+          "legendFormat": "rps"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Gateway Errors (5xx/4xx)",
+      "datasource": { "type": "prometheus", "uid": "PROM" },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_errors_total[5m]))",
+          "legendFormat": "errors"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Antifraude Processed",
+      "datasource": { "type": "prometheus", "uid": "PROM" },
+      "targets": [
+        {
+          "expr": "sum(rate(antifraud_processed_total[5m]))",
+          "legendFormat": "processed"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Antifraude Approved vs Rejected",
+      "datasource": { "type": "prometheus", "uid": "PROM" },
+      "targets": [
+        {
+          "expr": "sum(rate(antifraud_approved_total[5m]))",
+          "legendFormat": "approved"
+        },
+        {
+          "expr": "sum(rate(antifraud_rejected_total[5m]))",
+          "legendFormat": "rejected"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 }
+    }
+  ]
+}
