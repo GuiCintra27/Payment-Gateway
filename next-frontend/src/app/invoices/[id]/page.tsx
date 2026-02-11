@@ -17,7 +17,7 @@ type InvoiceEvent = {
   created_at: string
 }
 
-export async function getInvoice(id: string) {
+async function getInvoice(id: string) {
   const cookiesStore = await cookies()
   const apiKey = cookiesStore.get("apiKey")?.value
   const apiBaseUrl = getApiBaseUrl()
@@ -33,7 +33,7 @@ export async function getInvoice(id: string) {
   return response.json()
 }
 
-export async function getInvoiceEvents(id: string): Promise<InvoiceEvent[]> {
+async function getInvoiceEvents(id: string): Promise<InvoiceEvent[]> {
   const cookiesStore = await cookies()
   const apiKey = cookiesStore.get("apiKey")?.value
   const apiBaseUrl = getApiBaseUrl()

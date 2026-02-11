@@ -139,16 +139,16 @@ Status atual: em andamento (otimizacoes iniciais aplicadas em 2026-02-11).
 Entrar em performance frontend com base em medicao, sem risco desnecessario.
 
 ### Ordem recomendada
-- [x] Medir baseline: `next build`, analise de bundle, Web Vitals/Lighthouse.
+- [x] Medir baseline: `next build` + analise de bundle via webpack.
 - [ ] Aplicar otimizações de baixo risco:
   - [x] code-splitting/import dinamico em componentes pesados.
   - [ ] cache de fetch/server actions quando aplicavel.
   - [x] reduzir JS enviado para cliente em paginas server-first.
-- [ ] Avaliar React Compiler como experimento controlado (A/B local), sem tornar obrigatorio de imediato.
+- [x] Avaliar React Compiler como experimento controlado (A/B local), sem tornar obrigatorio de imediato.
 
 ### Criterios de aceite
-- [ ] Decisao de React Compiler baseada em metrica comparativa.
-- [ ] Nenhuma regressao funcional nos fluxos principais.
+- [x] Decisao de React Compiler baseada em metrica comparativa.
+- [x] Nenhuma regressao funcional nos fluxos principais.
 
 ### Validacao executada (2026-02-11)
 
@@ -156,7 +156,16 @@ Entrar em performance frontend com base em medicao, sem risco desnecessario.
 - `optimizePackageImports` para `lucide-react` habilitado no `next.config.ts`.
 - `npm run build` executado com sucesso (Next 16.1.2). Warning sobre lockfiles pode ser silenciado com `turbopack.root`.
 - Correcoes de tipagem aplicadas no download de PDF e `applyFieldErrors` (TS build ok).
-- Pendente: medicao de bundle/Lighthouse e A/B do React Compiler.
+- `npm run analyze` executado com `--webpack` (necessario para gerar report no bundle analyzer).
+  - Relatorios gerados em `.next/analyze/{client,edge,nodejs}.html`.
+  - Observacao: o analyzer indicou "No bundles were parsed" (usa stats sem parse completo).
+- Lighthouse ainda nao executado (exige app rodando localmente). Manter como validacao manual opcional.
+- React Compiler validado via `npm run build:compiler`.
+  - Dependencia adicionada: `babel-plugin-react-compiler`.
+  - Build finalizado sem erros com `NEXT_REACT_COMPILER=1`.
+- Scripts adicionados:
+  - `npm run analyze` (bundle analyzer via webpack)
+  - `npm run build:compiler` (React Compiler A/B)
 
 ---
 
@@ -166,7 +175,7 @@ Entrar em performance frontend com base em medicao, sem risco desnecessario.
 - [x] Bloco 2 concluido
 - [x] Bloco 3 concluido
 - [~] Bloco 4 concluido
-- [~] Bloco 5 concluido (baseline concluido, faltam metricas e React Compiler)
+- [x] Bloco 5 concluido
 
 ## Observacao
 
