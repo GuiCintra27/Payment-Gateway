@@ -60,6 +60,54 @@ require_cmd() {
   command -v "${cmd}" >/dev/null 2>&1 || die "${cmd} not found. Install it first."
 }
 
+ensure_writable_path() {
+  local path="$1"
+  local label="$2"
+
+  if [ ! -e "${path}" ] || [ -w "${path}" ]; then
+    return 0
+  fi
+
+  log_warn "${label} is not writable (${path}). Attempting ownership fix..."
+
+  if command -v docker >/dev/null 2>&1; then
+    local uid gid
+    uid="$(id -u)"
+    gid="$(id -g)"
+
+    if docker run --rm -v "${path}:/target" alpine:3.19 sh -c "chown -R ${uid}:${gid} /target" >/dev/null 2>&1; then
+      log_info "Ownership fixed for ${label}."
+      return 0
+    fi
+  fi
+
+  die "Cannot write to ${path}. Fix permissions manually (e.g. chown -R $(id -u):$(id -g) ${path})."
+}
+
+reset_build_dir() {
+  local base_dir="$1"
+  local rel_dir="$2"
+  local label="$3"
+  local abs_dir="${base_dir}/${rel_dir}"
+  local uid gid
+  uid="$(id -u)"
+  gid="$(id -g)"
+
+  if command -v docker >/dev/null 2>&1; then
+    if docker run --rm -v "${base_dir}:/workspace" alpine:3.19 sh -c "rm -rf /workspace/${rel_dir} && mkdir -p /workspace/${rel_dir} && chown -R ${uid}:${gid} /workspace/${rel_dir}" >/dev/null 2>&1; then
+      log_info "Reset ${label} directory."
+      return 0
+    fi
+  fi
+
+  rm -rf "${abs_dir}" 2>/dev/null || true
+  mkdir -p "${abs_dir}" 2>/dev/null || true
+  if [ -e "${abs_dir}" ] && [ -w "${abs_dir}" ]; then
+    return 0
+  fi
+  die "Cannot reset ${label} directory at ${abs_dir}."
+}
+
 read_env_var() {
   local file="$1"
   local key="$2"
@@ -433,7 +481,11 @@ echo -e "${GREEN}[OK]${NC} Gateway running at http://localhost:${GATEWAY_PORT}"
 
 log_info "Starting Anti-fraud (NestJS)..."
 revalidate_port_before_start ANTIFRAUD_PORT "Anti-fraud" "antifraud"
-start_process "antifraud" "cd \"${ROOT_DIR}/nestjs-anti-fraud\" && if [ ! -d \"node_modules\" ]; then echo '[INFO] Installing antifraud dependencies...'; npm install; fi && if [ -f \".env.local\" ]; then set -a; . ./.env.local; set +a; fi && npx prisma migrate dev && PORT=\"${ANTIFRAUD_PORT}\" npm run start:dev"
+ensure_writable_path "${ROOT_DIR}/nestjs-anti-fraud" "antifraud workspace"
+reset_build_dir "${ROOT_DIR}/nestjs-anti-fraud" "dist" "antifraud dist"
+ensure_writable_path "${ROOT_DIR}/nestjs-anti-fraud/dist" "antifraud dist"
+ensure_writable_path "${ROOT_DIR}/nestjs-anti-fraud/node_modules" "antifraud node_modules"
+start_process "antifraud" "cd \"${ROOT_DIR}/nestjs-anti-fraud\" && if [ ! -d \"node_modules\" ]; then echo '[INFO] Installing antifraud dependencies...'; npm install; fi && if [ -f \".env.local\" ]; then set -a; . ./.env.local; set +a; fi && npx prisma migrate deploy && PORT=\"${ANTIFRAUD_PORT}\" npm run start:dev"
 wait_for_port 127.0.0.1 "${ANTIFRAUD_PORT}" "Anti-fraud API" "${SERVICE_START_TIMEOUT}" || exit 1
 echo -e "${GREEN}[OK]${NC} Antifraud running at http://localhost:${ANTIFRAUD_PORT}"
 
@@ -465,6 +517,11 @@ fi
 
 log_info "Starting Frontend (Next.js)..."
 revalidate_port_before_start FRONTEND_PORT "Frontend" "frontend"
+ensure_writable_path "${ROOT_DIR}/next-frontend" "frontend workspace"
+reset_build_dir "${ROOT_DIR}/next-frontend" ".next" "frontend .next"
+ensure_writable_path "${ROOT_DIR}/next-frontend/.next" "frontend .next"
+ensure_writable_path "${ROOT_DIR}/next-frontend/node_modules" "frontend node_modules"
+ensure_writable_path "${ROOT_DIR}/next-frontend/package-lock.json" "frontend package-lock.json"
 start_process "frontend" "cd \"${ROOT_DIR}/next-frontend\" && if [ ! -d \"node_modules\" ]; then echo '[INFO] Installing frontend dependencies...'; npm install; fi && PORT=\"${FRONTEND_PORT}\" npm run dev -- --hostname 0.0.0.0 --port \"${FRONTEND_PORT}\""
 wait_for_port 127.0.0.1 "${FRONTEND_PORT}" "Frontend" "${SERVICE_START_TIMEOUT}" || exit 1
 echo -e "${GREEN}[OK]${NC} Frontend running at http://localhost:${FRONTEND_PORT}"

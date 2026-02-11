@@ -40,7 +40,8 @@ func main() {
 	if err := godotenv.Load(".env"); err != nil {
 		log.Print("missing .env, using defaults")
 	}
-	if err := godotenv.Load(".env.local"); err != nil {
+	// .env.local deve ter prioridade sobre .env no desenvolvimento local.
+	if err := godotenv.Overload(".env.local"); err != nil {
 		log.Print("missing .env.local, using defaults")
 	}
 
