@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/GuiCintra27/Payment-Gateway/compare/v0.2.0...v0.2.1) (2026-02-11)
+
+
+### Bug Fixes
+
+* **frontend:** stabilize build and caching ([b7b6aa9](https://github.com/GuiCintra27/Payment-Gateway/commit/b7b6aa9dddad099670a0928c29aa9d009a046c99))
+
 ## [0.2.0](https://github.com/GuiCintra27/Payment-Gateway/compare/v0.1.0...v0.2.0) (2026-02-11)
 
 
