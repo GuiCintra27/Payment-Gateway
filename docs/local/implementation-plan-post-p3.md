@@ -72,41 +72,57 @@ Atualizar docs de alto nivel com base no que ja foi implementado em P0/P1/P2/P3.
 
 ## Bloco 3 — Roteiro de Demo (5 minutos)
 
+Status atual: concluido em 2026-02-11.
+
 ### Objetivo
 Padronizar uma demonstracao tecnica curta, com narrativa de senioridade.
 
 ### Entregavel
-- [ ] Novo documento `docs/projects/DEMO-SCRIPT.md`.
+- [x] Novo documento `docs/projects/DEMO-SCRIPT.md`.
 
 ### Estrutura minima do roteiro
-- [ ] Contexto: problema, arquitetura e stack.
-- [ ] Fluxo principal: criar conta -> criar invoice pending -> retorno antifraude.
-- [ ] Confiabilidade: idempotencia, outbox/inbox, dedup, DLQ replay.
-- [ ] Operacao: metrics e logs por `request_id`.
-- [ ] Encerramento: tradeoffs e proximos passos.
+- [x] Contexto: problema, arquitetura e stack.
+- [x] Fluxo principal: criar conta -> criar invoice pending -> retorno antifraude.
+- [x] Confiabilidade: idempotencia, outbox/inbox, dedup, DLQ replay.
+- [x] Operacao: metrics e logs por `request_id`.
+- [x] Encerramento: tradeoffs e proximos passos.
 
 ### Criterios de aceite
-- [ ] Roteiro executavel em 5-7 minutos.
-- [ ] Inclui comandos/copias prontas para demo ao vivo.
+- [x] Roteiro executavel em 5-7 minutos.
+- [x] Inclui comandos/copias prontas para demo ao vivo.
+
+### Validacao executada (2026-02-11)
+
+- Documento criado em `docs/projects/DEMO-SCRIPT.md` com roteiro por tempo e bloco de comandos copia/cola.
+- Cobertura do roteiro validada contra endpoints reais documentados em `go-gateway/docs/projects/API.md`.
 
 ---
 
 ## Bloco 4 — Release Automatica (CI + release-please)
 
+Status atual: implementado em 2026-02-11 (validacao remota pendente).
+
 ### Objetivo
 Automatizar changelog, PR de release e tags sem depender de processo manual.
 
 ### Implementacao proposta
-- [ ] Adicionar workflow `.github/workflows/release-please.yml`.
-- [ ] Configurar `release-please` (modo monorepo simples ou raiz unica).
-- [ ] Definir padrao de commit (`feat`, `fix`, `chore`, etc.) para versionamento.
-- [ ] Gerar `CHANGELOG.md` automaticamente a cada release.
-- [ ] Publicar tag ao merge do PR de release.
+- [x] Adicionar workflow `.github/workflows/release-please.yml`.
+- [x] Configurar `release-please` (modo monorepo simples ou raiz unica).
+- [x] Definir padrao de commit (`feat`, `fix`, `chore`, etc.) para versionamento.
+- [x] Gerar `CHANGELOG.md` automaticamente a cada release.
+- [x] Publicar tag ao merge do PR de release.
 
 ### Criterios de aceite
-- [ ] PR de release gerado automaticamente apos merges na `master`.
-- [ ] Tag publicada automaticamente no merge da release.
-- [ ] Changelog consistente com os commits.
+- [~] PR de release gerado automaticamente apos merges na `master`.
+- [~] Tag publicada automaticamente no merge da release.
+- [~] Changelog consistente com os commits.
+
+### Validacao executada (2026-02-11)
+
+- Workflow criado: `.github/workflows/release-please.yml`.
+- Configuracao criada: `release-please-config.json` e `.release-please-manifest.json`.
+- Arquivo `CHANGELOG.md` inicializado para ser atualizado automaticamente.
+- Pendente: validar execucao no GitHub Actions apos push/merge em `master`.
 
 ---
 
@@ -133,8 +149,8 @@ Entrar em performance frontend com base em medicao, sem risco desnecessario.
 
 - [x] Bloco 1 concluido
 - [ ] Bloco 2 concluido
-- [ ] Bloco 3 concluido
-- [ ] Bloco 4 concluido
+- [x] Bloco 3 concluido
+- [~] Bloco 4 concluido
 - [ ] Bloco 5 concluido
 
 ## Observacao

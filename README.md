@@ -141,6 +141,7 @@ Este projeto e um simulador. Use apenas dados ficticios no formulario de cartao.
 
 Root:
 - Arquitetura: [docs/projects/ARCHITECTURE.md](docs/projects/ARCHITECTURE.md)
+- Demo script (5-7 min): [docs/projects/DEMO-SCRIPT.md](docs/projects/DEMO-SCRIPT.md)
 - `docs/projects/ARCHITECTURE.md`
 - `docs/projects/INTEGRATIONS.md`
 - `docs/projects/INFRA.md`
@@ -154,6 +155,20 @@ Por servico:
 - `go-gateway/README.md` e `go-gateway/docs/projects/*`
 - `nestjs-anti-fraud/README.md` e `nestjs-anti-fraud/docs/projects/*`
 - `next-frontend/README.md` e `next-frontend/docs/projects/*`
+
+## Release automatica
+
+O repositorio esta configurado com `release-please` para gerar PR de release, atualizar `CHANGELOG.md` e criar tag automaticamente ao merge da release.
+
+- Workflow: `.github/workflows/release-please.yml`
+- Config: `release-please-config.json`
+- Manifest de versao: `.release-please-manifest.json`
+
+Padrao de commits para versionamento:
+- `feat`: incrementa minor
+- `fix`: incrementa patch
+- `feat!`/`fix!` ou `BREAKING CHANGE`: incrementa major
+- `docs`, `chore`, `refactor`, `test`: entram no changelog conforme convencao
 
 ## Testes
 
