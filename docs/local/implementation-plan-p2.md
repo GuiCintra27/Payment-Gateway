@@ -43,11 +43,11 @@ Este plano cobre apenas os itens da secao **P2** do `docs/local/architecture-imp
   - Validar timeline no frontend manualmente (visual).
 
 ### P2.2 CI minima
-- Status: ok com avisos (lint) e pendencia de smoke na ultima rodada.
+- Status: ok com avisos (lint). Smoke revalidado.
 - `./scripts/ci.sh gateway`: ok.
 - `./scripts/ci.sh frontend`: ok (1 warning `react-hooks/incompatible-library`).
 - `./scripts/ci.sh antifraud`: ok (npm warnings de deprecacao/audit).
-- `./scripts/ci.sh smoke`: nao revalidado nesta rodada.
+- `./scripts/ci.sh smoke`: ok (concluiu e derrubou o stack).
 
 ### P2.3 Monitoring
 - Status: ok
@@ -90,11 +90,11 @@ Este plano cobre apenas os itens da secao **P2** do `docs/local/architecture-imp
 - `SELECT event_type, request_id FROM invoice_events WHERE invoice_id = ... ORDER BY created_at;`
 
 **Checklist**
-- [ ] Endpoint retorna eventos com API key valida
-- [ ] Endpoint bloqueia API key invalida
+- [x] Endpoint retorna eventos com API key valida
+- [x] Endpoint bloqueia API key invalida
 - [ ] Timeline exibe os eventos no detalhe
-- [ ] Eventos incluem `request_id` quando enviado
-- [ ] Ordem dos eventos esta correta
+- [x] Eventos incluem `request_id` quando enviado
+- [x] Ordem dos eventos esta correta
 
 ### P2.2 CI local
 
@@ -113,7 +113,7 @@ Este plano cobre apenas os itens da secao **P2** do `docs/local/architecture-imp
 
 **Checklist**
 - [ ] `scripts/ci.sh` passa em todos os scopes
-- [ ] Smoke sobe e derruba stack com sucesso
+- [x] Smoke sobe e derruba stack com sucesso
 - [ ] Workflow CI presente e referencia `scripts/ci.sh`
 
 ### P2.3 Monitoring

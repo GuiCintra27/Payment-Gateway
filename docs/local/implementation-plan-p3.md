@@ -156,10 +156,10 @@ Persistir logs estruturados para busca historica e troubleshooting por `request_
 - Consulta cruzada entre gateway e antifraude usando mesmo correlation id.
 
 ### Checklist
-- [ ] Compose de logging criado (`docker-compose.logging.yaml`)
-- [ ] Promtail coletando logs dos 3 servicos
+- [x] Compose de logging criado (`docker-compose.logging.yaml`)
+- [x] Promtail coletando logs (via tail de arquivos)
 - [ ] Dashboard/queries basicas prontas no Grafana
-- [ ] Runbook de troubleshooting atualizado
+- [x] Runbook de troubleshooting atualizado
 
 ## Testes e validacao da P3
 
@@ -168,10 +168,10 @@ Persistir logs estruturados para busca historica e troubleshooting por `request_
 
 ### Validacao funcional
 - [x] Inbox evita reprocessamento duplicado (duplicate event ignorado)
-- [~] Replay da DLQ funciona com auditoria (dry-run validado; execute pendente)
+- [x] Replay da DLQ funciona com auditoria (dry-run + execute)
 - [x] Limites por conta bloqueiam cenario excedido
 - [x] Chaos test cobre indisponibilidade e recuperacao (cenario kafka)
-- [~] Busca de logs por `request_id` funciona no Grafana (stack ok; consulta nao executada)
+- [x] Busca de logs por `request_id` funciona no Loki (query validada)
 
 ## Resultados da validacao (2026-02-10)
 
@@ -186,6 +186,7 @@ Persistir logs estruturados para busca historica e troubleshooting por `request_
 ### P3.2 — Replay DLQ
 - Topico `transactions_result_dlq` criado manualmente.
 - Replay `--dry-run --max 1` executado e auditoria gravada em `dlq_replay_audits` (`replay_mode=dry_run`).
+- Replay `--max 1` executado e auditoria gravada (`replay_mode=execute`, `success=true`).
 
 ### P3.3 — Limites por conta
 - Politica configurada (`max_amount_per_tx_cents=500`).
@@ -197,6 +198,16 @@ Persistir logs estruturados para busca historica e troubleshooting por `request_
 ### P3.5 — Logs persistidos
 - `docker compose -f docker-compose.logging.yaml up -d` executado.
 - Grafana Logs respondeu `200` em `/api/health` (porta 3005).
+- Loki respondeu `ready` em `http://localhost:3100/ready`.
+- Query no Loki retornou logs com `request_id=qa-log-1` usando `query={job="docker"} |= "qa-log-1"`.
+- Observacao: promtail em modo file-based (labels `job` + `filename`).
+
+#### Racional da tecnologia (Loki + Promtail)
+- Balanceio entre maturidade e simplicidade: stack leve, com baixo custo operacional e setup rapido.
+- Adequado para demo: Grafana Explore + labels viabilizam rastreio por `request_id` sem overkill.
+- Modelo eficiente: Loki indexa labels (nao o payload inteiro), reduzindo custo de storage/consulta.
+- Integracao nativa com logs Docker via Promtail, sem sidecar complexo.
+- Alternativas (ELK/Splunk/Datadog) exigem mais infraestrutura, custo ou credenciais externas, pouco praticas para um repo publico.
 
 ## Mudancas em APIs/Interfaces esperadas
 - Possivel endpoint/admin command para replay DLQ (a definir no inicio da implementacao).

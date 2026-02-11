@@ -13,9 +13,11 @@ services:
       - logging
 
   promtail:
-    image: grafana/promtail:2.9.3
+    image: grafana/promtail:2.9.6
     command:
       - -config.file=/etc/promtail/promtail-config.yml
+    environment:
+      DOCKER_API_VERSION: "1.44"
     volumes:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock
