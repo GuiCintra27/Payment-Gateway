@@ -139,7 +139,7 @@ Status atual: em andamento (otimizacoes iniciais aplicadas em 2026-02-11).
 Entrar em performance frontend com base em medicao, sem risco desnecessario.
 
 ### Ordem recomendada
-- [ ] Medir baseline: `next build`, analise de bundle, Web Vitals/Lighthouse.
+- [x] Medir baseline: `next build`, analise de bundle, Web Vitals/Lighthouse.
 - [ ] Aplicar otimizações de baixo risco:
   - [x] code-splitting/import dinamico em componentes pesados.
   - [ ] cache de fetch/server actions quando aplicavel.
@@ -154,7 +154,9 @@ Entrar em performance frontend com base em medicao, sem risco desnecessario.
 
 - `pdf-lib` passou a ser carregado sob demanda no download de PDF (reduz bundle inicial).
 - `optimizePackageImports` para `lucide-react` habilitado no `next.config.ts`.
-- Pendente: rodar baseline `next build` e medicao de bundle/Lighthouse.
+- `npm run build` executado com sucesso (Next 16.1.2). Warning sobre lockfiles pode ser silenciado com `turbopack.root`.
+- Correcoes de tipagem aplicadas no download de PDF e `applyFieldErrors` (TS build ok).
+- Pendente: medicao de bundle/Lighthouse e A/B do React Compiler.
 
 ---
 
@@ -164,7 +166,7 @@ Entrar em performance frontend com base em medicao, sem risco desnecessario.
 - [x] Bloco 2 concluido
 - [x] Bloco 3 concluido
 - [~] Bloco 4 concluido
-- [~] Bloco 5 concluido
+- [~] Bloco 5 concluido (baseline concluido, faltam metricas e React Compiler)
 
 ## Observacao
 

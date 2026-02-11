@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { updateTag } from "next/cache";
 import { cookies } from "next/headers";
 import { getApiBaseUrl } from "@/lib/api";
 import { parseApiError, type ActionResult } from "@/lib/forms/api-errors";
@@ -66,8 +66,8 @@ export async function createInvoiceAction(
 
   const data = await response.json();
 
-  revalidateTag(`accounts/${apiKey}/invoices`);
-  revalidateTag(`accounts/${apiKey}/invoices/${data.id}`)
+  updateTag(`accounts/${apiKey}/invoices`);
+  updateTag(`accounts/${apiKey}/invoices/${data.id}`);
 
   return { ok: true, redirectTo: "/invoices" };
 }

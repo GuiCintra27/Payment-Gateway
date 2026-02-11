@@ -1,4 +1,4 @@
-import type { FieldPath, UseFormSetError } from "react-hook-form";
+import type { FieldPath, FieldValues, UseFormSetError } from "react-hook-form";
 
 export type ApiErrorPayload = {
   code?: string;
@@ -22,7 +22,7 @@ export async function parseApiError(response: Response): Promise<ApiErrorPayload
   }
 }
 
-export function applyFieldErrors<T>(
+export function applyFieldErrors<T extends FieldValues>(
   setError: UseFormSetError<T>,
   details: Record<string, string> | undefined,
   fieldMap: Record<string, FieldPath<T>>,
