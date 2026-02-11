@@ -138,3 +138,11 @@ Use this flow before opening PRs:
 3. Run validations on the feature branch.
 4. Open PR from feature branch to `master`.
 5. Merge after review/approval.
+
+## Plan tracking discipline
+
+For every implementation tied to a planning document (for example `docs/local/implementation-plan-*.md`):
+
+1. Mark completed checklist items immediately after implementation.
+2. Add a short validation/result note describing what was tested and the outcome.
+3. Keep plan status synchronized before committing code changes.
