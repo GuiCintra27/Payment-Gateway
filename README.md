@@ -12,6 +12,14 @@ Projeto de estudo com arquitetura de microservicos para processamento de pagamen
 
 ## Inicio rapido
 
+### Preparar ambiente local (uma vez)
+
+```bash
+cp go-gateway/.env.example go-gateway/.env.local
+cp nestjs-anti-fraud/.env.example nestjs-anti-fraud/.env.local
+cp next-frontend/.env.example next-frontend/.env.local
+```
+
 ### Opcao 1: script local (recomendado)
 
 ```bash
@@ -67,7 +75,7 @@ cd nestjs-anti-fraud
 cp .env.example .env.local
 
 npm install
-npx prisma migrate dev
+npx prisma migrate deploy
 npm run start:dev
 ```
 
@@ -154,6 +162,12 @@ Por servico:
 
 ## Troubleshooting rapido
 
-- Porta ocupada: use `lsof -iTCP:<porta> -sTCP:LISTEN` e finalize o processo, ou rode `FORCE_KILL_PORTS=true ./start-dev.sh`.
-- Permissao em pastas `node_modules` ou `.next`: ajuste `LOCAL_UID`/`LOCAL_GID` no Docker Compose.
-- Kafka indisponivel: verifique `docker compose -f docker-compose.infra.yaml ps` e logs.
+| Sintoma | Causa comum | Acao recomendada |
+|---|---|---|
+| `Port ... is busy` ao subir | Porta ocupada por processo antigo | `FORCE_KILL_PORTS=true ./start-dev.sh` ou `lsof -iTCP:<porta> -sTCP:LISTEN` |
+| `lookup gateway-db` / `lookup kafka` no modo local | `.env.local` ausente ou com valores de Docker | Recriar `.env.local` a partir de `.env.example` |
+| `EACCES` em `dist`, `.next` ou `node_modules` | Arquivos gerados por UID diferente (Docker) | Rodar `./start-dev.sh` novamente (script corrige ownership automaticamente) |
+| Erro de migration no antifraude | Banco ainda nao pronto ou estado local divergente | Verificar `docker compose -f docker-compose.infra.yaml ps` e repetir `./start-dev.sh` |
+| Containers `orphan` em `docker compose` | Stack antiga ainda ativa | `docker compose down --remove-orphans` e subir novamente |
+
+Guia operacional completo: `docs/projects/RUNBOOK.md`

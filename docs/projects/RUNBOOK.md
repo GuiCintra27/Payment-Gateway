@@ -79,8 +79,13 @@ docker compose down
 docker compose -f docker-compose.infra.yaml down
 ```
 
-## Problemas comuns
+## Matriz de troubleshooting rapido
 
-- Porta ocupada: finalize o processo ou use `FORCE_KILL_PORTS=true`.
-- Kafka fora do ar: verifique `docker compose -f docker-compose.infra.yaml ps`.
-- Erros de permissao em pastas: ajuste `LOCAL_UID`/`LOCAL_GID` no compose.
+| Sintoma | Causa comum | Diagnostico | Acao |
+|---|---|---|---|
+| `Port ... is busy` no `start-dev.sh` | Processo antigo ocupando porta | `lsof -iTCP:<porta> -sTCP:LISTEN` | `FORCE_KILL_PORTS=true ./start-dev.sh` |
+| `lookup gateway-db` / `lookup kafka` no local | Config local com host de container | `cat go-gateway/.env.local` e `cat nestjs-anti-fraud/.env.local` | Recriar `.env.local` a partir de `.env.example` |
+| `EACCES` em `dist`, `.next`, `node_modules` | Permissao herdada de container | `ls -ld <pasta>` | Reexecutar `./start-dev.sh` (autocorrecao) ou ajustar ownership manual |
+| Antifraude nao sobe apos migrate | DB nao pronto ou migration pendente | `docker compose -f docker-compose.infra.yaml ps` e logs do processo | Subir infra novamente e repetir `./start-dev.sh` |
+| Warning de orphan containers | Containers antigos no projeto | `docker compose ps -a` | `docker compose down --remove-orphans` |
+| Kafka fora do ar | Infra nao iniciada ou broker indisponivel | `docker compose -f docker-compose.infra.yaml ps` | `docker compose -f docker-compose.infra.yaml up -d` |

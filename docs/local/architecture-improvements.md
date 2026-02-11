@@ -101,6 +101,10 @@ Detalhamento executavel P3: `docs/local/implementation-plan-p3.md`
 - [x] Modo "chaos test" local (falhar publish/consumer) para demonstrar resiliencia.
 - [x] Persistencia de logs em producao (ex.: Loki + Promtail + Grafana, com retention e filtros por `request_id`).
 
+### Pos-P3 - Consolidacao para portfolio e release
+
+Detalhamento executavel Pos-P3: `docs/local/implementation-plan-post-p3.md`
+
 ## Entregaveis recomendados para recrutadores
 
 - [ ] README com "Demo em 3 minutos" + arquitetura atualizada + tradeoffs tecnicos.
