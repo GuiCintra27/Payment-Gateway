@@ -20,11 +20,15 @@ async function setAuthCookies(apiKey: string) {
   cookiesStore.set("apiKey", apiKey, {
     httpOnly: true,
     sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
   });
   cookiesStore.set("apiKeyPreview", apiKey, {
     httpOnly: true,
     maxAge: 300,
     sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
   });
 }
 

@@ -28,6 +28,8 @@ export async function loginAction(formData: FormData): Promise<ActionResult> {
   cookiesStore.set("apiKey", apiKey, {
     httpOnly: true,
     sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
   });
 
   return { ok: true, redirectTo: "/invoices" };

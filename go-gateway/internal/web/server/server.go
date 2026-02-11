@@ -58,9 +58,9 @@ func (s *Server) ConfigureRoutes() {
 	s.router.Use(middleware.SecurityHeaders)
 	s.router.Use(middleware.CORS)
 
-	s.router.Post("/accounts", accountHandler.Create)
-	s.router.Get("/accounts", accountHandler.Get)
-	s.router.Post("/demo", demoHandler.Create)
+	s.router.With(s.rateLimit.Limit).Post("/accounts", accountHandler.Create)
+	s.router.With(s.rateLimit.Limit).Get("/accounts", accountHandler.Get)
+	s.router.With(s.rateLimit.Limit).Post("/demo", demoHandler.Create)
 	s.router.Get("/swagger/*", httpSwagger.WrapHandler)
 	s.router.Get("/health", s.healthHandler.Liveness)
 	s.router.Get("/ready", s.healthHandler.Readiness)

@@ -1,7 +1,9 @@
 package middleware
 
 import (
+	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -44,19 +46,36 @@ func NewRateLimitMiddleware(ratePerMinute int, burst int) *RateLimitMiddleware {
 
 func (m *RateLimitMiddleware) Limit(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		apiKey := r.Header.Get("X-API-KEY")
-		if apiKey == "" {
+		key := clientKeyFromRequest(r)
+		if key == "" {
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		if !m.limiter.allow(apiKey) {
+		if !m.limiter.allow(key) {
 			response.Error(w, http.StatusTooManyRequests, "rate_limited", "too many requests", nil)
 			return
 		}
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func clientKeyFromRequest(r *http.Request) string {
+	if apiKey := r.Header.Get("X-API-KEY"); apiKey != "" {
+		return apiKey
+	}
+	if forwarded := r.Header.Get("X-Forwarded-For"); forwarded != "" {
+		return strings.TrimSpace(strings.Split(forwarded, ",")[0])
+	}
+	if realIP := strings.TrimSpace(r.Header.Get("X-Real-IP")); realIP != "" {
+		return realIP
+	}
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr
+	}
+	return host
 }
 
 func (l *rateLimiter) allow(key string) bool {
