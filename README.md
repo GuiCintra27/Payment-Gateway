@@ -126,6 +126,14 @@ docker compose -f docker-compose.monitoring.yaml up -d
 - Prometheus: http://localhost:9090
 - Grafana: http://localhost:3004 (admin/admin)
 
+## Logging
+
+```bash
+docker compose -f docker-compose.logging.yaml up -d
+```
+
+- Grafana (logs): http://localhost:3005 (admin/admin)
+
 ## Demo rapido
 
 - UI: acesse `/` e clique em "Entrar no demo".

@@ -15,12 +15,14 @@
 ## Criar transferencia
 
 1. UI envia `POST /invoice` com `X-API-KEY` e dados do pagamento.
-2. Gateway valida payload, converte `amount` para centavos e cria transferencia.
+2. Opcional: `Idempotency-Key` evita duplicidade para o mesmo payload.
+3. Gateway valida payload, converte `amount` para centavos e cria transferencia.
 3. Se `amount <= 10000`:
    - transferencia aprovada/rejeitada localmente.
 4. Se `amount > 10000`:
    - transferencia fica `pending`.
-   - evento `pending_transactions` e publicado no Kafka.
+   - evento `pending_transactions` e gravado na outbox.
+   - worker da outbox publica no Kafka.
 
 ## Analise antifraude
 
@@ -33,6 +35,7 @@
 
 1. Gateway consome `transactions_result`.
 2. Faz deduplicacao por `event_id`.
-3. Atualiza status da transferencia.
+3. Atualiza status da transferencia (transacao DB).
 4. Se aprovado, atualiza saldo da conta.
-5. Em falhas, envia payload para `transactions_result_dlq`.
+5. Registra evento na timeline (`invoice_events`).
+6. Em falhas, envia payload para `transactions_result_dlq`.

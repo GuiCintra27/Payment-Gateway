@@ -7,6 +7,7 @@ O repositorio possui dois arquivos principais:
 - `docker-compose.yaml`: sobe toda a stack (frontend + gateway + antifraude + kafka + postgres).
 - `docker-compose.infra.yaml`: sobe apenas a infra (kafka + postgres + migrations).
 - `docker-compose.monitoring.yaml`: sobe Prometheus + Grafana (dashboard).
+- `docker-compose.logging.yaml`: sobe Loki + Promtail + Grafana (logs).
 
 ### Servicos (docker-compose.yaml)
 
@@ -17,7 +18,7 @@ O repositorio possui dois arquivos principais:
 - `go-migrate` (aplica migrations do gateway)
 - `nestjs-migrate` (aplica migrations do antifraude)
 - `go-gateway`
-- `nestjs-anti-fraud`
+- `nestjs` (API antifraude)
 - `nestjs-worker`
 - `next-frontend`
 
@@ -34,14 +35,21 @@ O repositorio possui dois arquivos principais:
 - `prometheus`
 - `grafana`
 
+### Servicos (docker-compose.logging.yaml)
+
+- `loki`
+- `promtail`
+- `grafana-logs`
+
 ## Volumes
 
-- `gateway_db_data`
-- `nestjs_db_data`
+- `gateway_postgres_data`
+- `nestjs_node_modules`
+- `next_node_modules`
 
 ## Redes
 
-Todos os servicos compartilham a rede `gateway-network`.
+Todos os servicos compartilham a rede default do compose (`payment-gateway_default`).
 
 ## Portas
 
@@ -54,6 +62,7 @@ Todos os servicos compartilham a rede `gateway-network`.
 - Kafka: 9092
 - Prometheus: 9090
 - Grafana: 3004
+- Grafana (logs): 3005
 
 ## Execucao local
 

@@ -58,15 +58,20 @@ Checklist da validacao:
 Atualizar docs de alto nivel com base no que ja foi implementado em P0/P1/P2/P3.
 
 ### Tasks
-- [ ] Atualizar `docs/projects/ARCHITECTURE.md` com estado atual (outbox, inbox, DLQ replay, observabilidade).
-- [ ] Atualizar `docs/projects/INFRA.md` com stacks auxiliares (`monitoring` e `logging`).
-- [ ] Atualizar `docs/projects/FLOWS.md` com fluxos sincrono/assincrono e pontos de falha.
-- [ ] Atualizar `docs/projects/OBSERVABILITY.md` e `docs/projects/RUNBOOK.md` com comandos de diagnostico.
-- [ ] Revisar `README.md` para refletir arquitetura e validacoes atuais.
+- [x] Atualizar `docs/projects/ARCHITECTURE.md` com estado atual (outbox, inbox, DLQ replay, observabilidade).
+- [x] Atualizar `docs/projects/INFRA.md` com stacks auxiliares (`monitoring` e `logging`).
+- [x] Atualizar `docs/projects/FLOWS.md` com fluxos sincrono/assincrono e pontos de falha.
+- [x] Atualizar `docs/projects/OBSERVABILITY.md` e `docs/projects/RUNBOOK.md` com comandos de diagnostico.
+- [x] Revisar `README.md` para refletir arquitetura e validacoes atuais.
 
 ### Criterios de aceite
-- [ ] Nao existir contradicao entre `docs/local` e `docs/projects`.
-- [ ] README refletir com precisao o comportamento atual da stack.
+- [x] Nao existir contradicao entre `docs/local` e `docs/projects`.
+- [x] README refletir com precisao o comportamento atual da stack.
+
+### Validacao executada (2026-02-11)
+
+- Atualizados: `ARCHITECTURE.md`, `INFRA.md`, `FLOWS.md`, `OBSERVABILITY.md`, `RUNBOOK.md`.
+- README sincronizado com logging, release-please e demo script.
 
 ---
 
@@ -128,30 +133,38 @@ Automatizar changelog, PR de release e tags sem depender de processo manual.
 
 ## Bloco 5 — Otimizacoes Next.js (proxima iteracao)
 
+Status atual: em andamento (otimizacoes iniciais aplicadas em 2026-02-11).
+
 ### Objetivo
 Entrar em performance frontend com base em medicao, sem risco desnecessario.
 
 ### Ordem recomendada
 - [ ] Medir baseline: `next build`, analise de bundle, Web Vitals/Lighthouse.
 - [ ] Aplicar otimizações de baixo risco:
-  - [ ] code-splitting/import dinamico em componentes pesados.
+  - [x] code-splitting/import dinamico em componentes pesados.
   - [ ] cache de fetch/server actions quando aplicavel.
-  - [ ] reduzir JS enviado para cliente em paginas server-first.
+  - [x] reduzir JS enviado para cliente em paginas server-first.
 - [ ] Avaliar React Compiler como experimento controlado (A/B local), sem tornar obrigatorio de imediato.
 
 ### Criterios de aceite
 - [ ] Decisao de React Compiler baseada em metrica comparativa.
 - [ ] Nenhuma regressao funcional nos fluxos principais.
 
+### Validacao executada (2026-02-11)
+
+- `pdf-lib` passou a ser carregado sob demanda no download de PDF (reduz bundle inicial).
+- `optimizePackageImports` para `lucide-react` habilitado no `next.config.ts`.
+- Pendente: rodar baseline `next build` e medicao de bundle/Lighthouse.
+
 ---
 
 ## Checklist de Execucao
 
 - [x] Bloco 1 concluido
-- [ ] Bloco 2 concluido
+- [x] Bloco 2 concluido
 - [x] Bloco 3 concluido
 - [~] Bloco 4 concluido
-- [ ] Bloco 5 concluido
+- [~] Bloco 5 concluido
 
 ## Observacao
 

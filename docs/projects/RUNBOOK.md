@@ -69,6 +69,24 @@ Portas:
 - Nenhum evento processado no antifraude em 10 minutos (possible backlog).
 - Lag de processamento acima de 10s por 5 minutos.
 
+## Replay de DLQ (gateway)
+
+Dry-run (nao publica):
+
+```bash
+cd go-gateway
+go run cmd/dlq-replay/main.go --dry-run --max 10
+```
+
+Replay real:
+
+```bash
+cd go-gateway
+go run cmd/dlq-replay/main.go --max 50 --operator local
+```
+
+Auditoria fica em `dlq_replay_audits` (Postgres gateway).
+
 ## Parar tudo
 
 ```bash

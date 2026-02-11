@@ -65,10 +65,13 @@ Fluxo macro (sincrono + assincroano):
 
 ## Confiabilidade e resiliencia
 
-- Gateway faz deduplicacao por `event_id` (tabela `processed_events`).
+- Gateway salva eventos pendentes via outbox (`outbox_events`) e publica assincrono.
+- Gateway faz deduplicacao por `event_id` (tabela `processed_events`) antes de aplicar resultado.
+- Antifraude usa inbox (`processed_events`) para dedup de mensagens consumidas do Kafka.
 - Consumer do Gateway faz retry com backoff e envia para DLQ apos N tentativas.
-- DLQ topic: `transactions_result_dlq`.
-- Logs estruturados no gateway com `request_id`.
+- DLQ topic: `transactions_result_dlq` com replay auditado (`dlq_replay_audits`).
+- Eventos de auditoria em `invoice_events` para timeline no frontend.
+- Logs estruturados no gateway com `request_id` e propagacao no Kafka (`x-request-id`).
 - Health endpoints para readiness e liveness.
 
 ## Ownership de dados

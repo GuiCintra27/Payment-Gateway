@@ -44,6 +44,7 @@ Campos padronizados esperados:
 - `level`
 - `request_id`
 - `event_id` (quando houver)
+- `replayed` (quando mensagem veio da DLQ)
 
 ## Antifraude (NestJS)
 

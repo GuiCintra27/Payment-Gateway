@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type ComponentProps } from "react";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { Download, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -85,6 +84,7 @@ export function InvoiceDownloadButton({
   const handleDownload = async () => {
     try {
       setIsGenerating(true);
+      const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
       const pdfDoc = await PDFDocument.create();
       const page = pdfDoc.addPage([595.28, 841.89]);
       const { height } = page.getSize();
