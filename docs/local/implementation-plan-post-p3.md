@@ -122,7 +122,7 @@ Automatizar changelog, PR de release e tags sem depender de processo manual.
 - Workflow criado: `.github/workflows/release-please.yml`.
 - Configuracao criada: `release-please-config.json` e `.release-please-manifest.json`.
 - Arquivo `CHANGELOG.md` inicializado para ser atualizado automaticamente.
-- Pendente: validar execucao no GitHub Actions apos push/merge em `master`.
+- Pendente: validar execucao no GitHub Actions apos configurar o secret `RELEASE_PLEASE_TOKEN` (PAT com escopo `repo`) ou permitir criacao de PRs por Actions.
 
 ---
 

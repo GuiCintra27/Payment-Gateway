@@ -164,6 +164,10 @@ O repositorio esta configurado com `release-please` para gerar PR de release, at
 - Config: `release-please-config.json`
 - Manifest de versao: `.release-please-manifest.json`
 
+Requisitos para funcionamento:
+- Criar o secret `RELEASE_PLEASE_TOKEN` com um PAT do GitHub (escopo `repo`).
+- Alternativa: habilitar em Settings > Actions > Workflow permissions a criacao de PRs por Actions (ainda assim recomendamos o token dedicado).
+
 Padrao de commits para versionamento:
 - `feat`: incrementa minor
 - `fix`: incrementa patch
