@@ -53,15 +53,24 @@ dump_logs() {
 
 run_smoke() {
   log "Running smoke (docker compose)"
-  if [[ ! -f "$ROOT_DIR/nestjs-anti-fraud/.env" ]]; then
-    if [[ -f "$ROOT_DIR/nestjs-anti-fraud/.env.example" ]]; then
-      log "Seeding nestjs-anti-fraud/.env from .env.example for CI smoke"
-      cp "$ROOT_DIR/nestjs-anti-fraud/.env.example" "$ROOT_DIR/nestjs-anti-fraud/.env"
-    else
-      log "Missing nestjs-anti-fraud/.env and .env.example"
-      return 1
-    fi
+  local nestjs_env="$ROOT_DIR/nestjs-anti-fraud/.env"
+  local nestjs_env_backup="$ROOT_DIR/nestjs-anti-fraud/.env.ci.bak"
+
+  if [[ -f "$nestjs_env" ]]; then
+    log "Backing up existing nestjs-anti-fraud/.env for smoke"
+    cp "$nestjs_env" "$nestjs_env_backup"
   fi
+
+  log "Seeding nestjs-anti-fraud/.env for docker compose smoke"
+  cat >"$nestjs_env" <<'EOF'
+DATABASE_URL=postgresql://postgres:root@nestjs-db:5432/mydb?schema=public
+KAFKA_BROKER=kafka:29092
+SUSPICIOUS_VARIATION_PERCENTAGE=50
+INVOICES_HISTORY_COUNT=5
+SUSPICIOUS_INVOICES_COUNT=3
+SUSPICIOUS_TIMEFRAME_HOURS=1
+ANTIFRAUD_WORKER_PORT=3101
+EOF
   (
     cd "$ROOT_DIR"
     NESTJS_START_CMD=start NESTJS_WORKER_CMD=start:kafka:dev docker compose up -d --build
@@ -85,6 +94,13 @@ cleanup() {
   if [[ "$SCOPE" == "smoke" || "$SCOPE" == "all" ]]; then
     log "Cleaning up docker compose"
     (cd "$ROOT_DIR" && docker compose down)
+  fi
+
+  local nestjs_env="$ROOT_DIR/nestjs-anti-fraud/.env"
+  local nestjs_env_backup="$ROOT_DIR/nestjs-anti-fraud/.env.ci.bak"
+  if [[ -f "$nestjs_env_backup" ]]; then
+    log "Restoring nestjs-anti-fraud/.env from CI backup"
+    mv "$nestjs_env_backup" "$nestjs_env"
   fi
 }
 
