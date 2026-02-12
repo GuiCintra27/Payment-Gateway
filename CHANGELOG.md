@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.2](https://github.com/GuiCintra27/Payment-Gateway/compare/v0.2.1...v0.2.2) (2026-02-12)
+
+
+### Bug Fixes
+
+* **dev:** load gateway .env.local in start-dev ([01d5986](https://github.com/GuiCintra27/Payment-Gateway/commit/01d598642b5ce7b1b83f25f6dae5e200ce276948))
+* **security:** harden auth cookies and public rate limits ([575c852](https://github.com/GuiCintra27/Payment-Gateway/commit/575c8528db3ba25fcafb6282e59aad518eb71bb6))
+
 ## [0.2.1](https://github.com/GuiCintra27/Payment-Gateway/compare/v0.2.0...v0.2.1) (2026-02-11)
 
 
