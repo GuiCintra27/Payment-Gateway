@@ -475,7 +475,13 @@ fi
 
 log_info "Starting API Gateway (Go)..."
 revalidate_port_before_start GATEWAY_PORT "API Gateway" "gateway"
-start_process "gateway" "cd \"${ROOT_DIR}/go-gateway\" && go run cmd/app/main.go"
+GATEWAY_ENV_FILE=""
+if [ -f "${ROOT_DIR}/go-gateway/.env.local" ]; then
+  GATEWAY_ENV_FILE="${ROOT_DIR}/go-gateway/.env.local"
+elif [ -f "${ROOT_DIR}/go-gateway/.env" ]; then
+  GATEWAY_ENV_FILE="${ROOT_DIR}/go-gateway/.env"
+fi
+start_process "gateway" "cd \"${ROOT_DIR}/go-gateway\" && if [ -n \"${GATEWAY_ENV_FILE}\" ]; then set -a; . \"${GATEWAY_ENV_FILE}\"; set +a; fi && HTTP_PORT=\"${GATEWAY_PORT}\" go run cmd/app/main.go"
 wait_for_port 127.0.0.1 "${GATEWAY_PORT}" "Gateway API" "${SERVICE_START_TIMEOUT}" || exit 1
 echo -e "${GREEN}[OK]${NC} Gateway running at http://localhost:${GATEWAY_PORT}"
 
@@ -485,6 +491,9 @@ ensure_writable_path "${ROOT_DIR}/nestjs-anti-fraud" "antifraud workspace"
 reset_build_dir "${ROOT_DIR}/nestjs-anti-fraud" "dist" "antifraud dist"
 ensure_writable_path "${ROOT_DIR}/nestjs-anti-fraud/dist" "antifraud dist"
 ensure_writable_path "${ROOT_DIR}/nestjs-anti-fraud/node_modules" "antifraud node_modules"
+if command -v chown >/dev/null 2>&1; then
+  chown -R "$(id -u):$(id -g)" "${ROOT_DIR}/nestjs-anti-fraud/dist" >/dev/null 2>&1 || true
+fi
 start_process "antifraud" "cd \"${ROOT_DIR}/nestjs-anti-fraud\" && if [ ! -d \"node_modules\" ]; then echo '[INFO] Installing antifraud dependencies...'; npm install; fi && if [ -f \".env.local\" ]; then set -a; . ./.env.local; set +a; fi && npx prisma migrate deploy && PORT=\"${ANTIFRAUD_PORT}\" npm run start:dev"
 wait_for_port 127.0.0.1 "${ANTIFRAUD_PORT}" "Anti-fraud API" "${SERVICE_START_TIMEOUT}" || exit 1
 echo -e "${GREEN}[OK]${NC} Antifraud running at http://localhost:${ANTIFRAUD_PORT}"
@@ -522,6 +531,9 @@ reset_build_dir "${ROOT_DIR}/next-frontend" ".next" "frontend .next"
 ensure_writable_path "${ROOT_DIR}/next-frontend/.next" "frontend .next"
 ensure_writable_path "${ROOT_DIR}/next-frontend/node_modules" "frontend node_modules"
 ensure_writable_path "${ROOT_DIR}/next-frontend/package-lock.json" "frontend package-lock.json"
+if command -v chown >/dev/null 2>&1; then
+  chown -R "$(id -u):$(id -g)" "${ROOT_DIR}/next-frontend/.next" >/dev/null 2>&1 || true
+fi
 start_process "frontend" "cd \"${ROOT_DIR}/next-frontend\" && if [ ! -d \"node_modules\" ]; then echo '[INFO] Installing frontend dependencies...'; npm install; fi && PORT=\"${FRONTEND_PORT}\" npm run dev -- --hostname 0.0.0.0 --port \"${FRONTEND_PORT}\""
 wait_for_port 127.0.0.1 "${FRONTEND_PORT}" "Frontend" "${SERVICE_START_TIMEOUT}" || exit 1
 echo -e "${GREEN}[OK]${NC} Frontend running at http://localhost:${FRONTEND_PORT}"
