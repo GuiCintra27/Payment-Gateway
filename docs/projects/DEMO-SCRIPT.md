@@ -1,4 +1,4 @@
-# Demo Script (5-7 min)
+# Script de demo (5-7 min)
 
 Objetivo: demonstrar arquitetura, fluxo principal, confiabilidade e operacao do Payment Gateway em uma apresentacao curta.
 

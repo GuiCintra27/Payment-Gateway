@@ -1,4 +1,4 @@
-# Database
+# Banco de dados
 
 ## Schema (Prisma)
 

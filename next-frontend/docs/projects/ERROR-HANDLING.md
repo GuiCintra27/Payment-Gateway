@@ -1,4 +1,4 @@
-# Error Handling
+# Tratamento de erros
 
 ## Home (`/`)
 

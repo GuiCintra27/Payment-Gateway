@@ -1,4 +1,4 @@
-# Domain
+# Dominio
 
 ## Status de transferencia
 

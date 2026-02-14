@@ -1,4 +1,4 @@
-# Data Model
+# Modelo de dados
 
 ## Gateway (Postgres)
 

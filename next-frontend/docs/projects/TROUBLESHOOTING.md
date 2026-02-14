@@ -1,4 +1,4 @@
-# Troubleshooting
+# Resolucao de problemas
 
 ## API base URL errado
 

@@ -1,4 +1,4 @@
-# Observability
+# Observabilidade
 
 ## Gateway (Go)
 

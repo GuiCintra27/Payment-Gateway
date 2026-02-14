@@ -1,4 +1,4 @@
-# Errors
+# Erros
 
 Formato padrao:
 
