@@ -2,12 +2,12 @@
 
 Projeto de gateway de pagamentos orientado a eventos, criado para demonstrar fundamentos de engenharia backend em sistemas distribuídos.
 
-## Visao geral
+## Visão geral
 
-O projeto simula um fluxo de pagamento com caminhos sincrono e assincrono:
-- `go-gateway`: API de contas e transferencias, idempotencia, outbox e replay de DLQ.
-- `nestjs-anti-fraud`: analise antifraude (API + worker Kafka).
-- `next-frontend`: onboarding, login, criacao de transferencia, timeline e download de PDF.
+O projeto simula um fluxo de pagamento com caminhos síncrono e assíncrono:
+- `go-gateway`: API de contas e transferências, idempotencia, outbox e replay de DLQ.
+- `nestjs-anti-fraud`: análise antifraude (API + worker Kafka).
+- `next-frontend`: onboarding, login, criação de transferência, timeline e download de PDF.
 - stacks de Kafka + Postgres + observabilidade/logs.
 
 ## Tecnologias
@@ -19,7 +19,7 @@ O projeto simula um fluxo de pagamento com caminhos sincrono e assincrono:
 - Postgres
 - Prometheus/Grafana + Loki/Promtail
 
-## Inicio rapido
+## Início rapido
 
 ```bash
 cp go-gateway/.env.example go-gateway/.env.local
@@ -42,7 +42,7 @@ Guias completos de inicializacao e troubleshooting:
 
 - Fluxo orientado a eventos com `pending_transactions` e `transactions_result`.
 - Padroes de confiabilidade: idempotencia, outbox, deduplicacao, retry/backoff e DLQ + replay.
-- Base de seguranca: rotacao de HMAC da API key, rate limit, cookies `secure` em producao e hardening de CORS.
+- Base de segurança: rotacao de HMAC da API key, rate limit, cookies `secure` em produção e hardening de CORS.
 - Observabilidade: metricas de API/worker, dashboards, logs estruturados e persistencia centralizada de logs.
 
 ## Demo (5-7 min)
@@ -50,19 +50,19 @@ Guias completos de inicializacao e troubleshooting:
 Use:
 - `docs/projects/DEMO-SCRIPT.md`
 
-## Mapa de documentacao
+## Mapa de documentação
 
 Comece aqui:
 - `docs/projects/INDEX.md`
 
-Documentacao principal:
+Documentação principal:
 - `docs/projects/ARCHITECTURE.md`
 - `docs/projects/INTEGRATIONS.md`
 - `docs/projects/SECURITY.md`
 - `docs/projects/OBSERVABILITY.md`
 - `docs/projects/TECHNICAL-REFERENCE.md`
 
-Documentacao por servico:
+Documentação por serviço:
 - `go-gateway/docs/projects/INDEX.md`
 - `nestjs-anti-fraud/docs/projects/INDEX.md`
 - `next-frontend/docs/projects/INDEX.md`

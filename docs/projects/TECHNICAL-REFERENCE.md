@@ -1,6 +1,6 @@
 # Referencia tecnica
 
-## Servicos e portas
+## Serviços e portas
 
 - Frontend local: `3000`
 - Frontend via docker compose: `3002`
@@ -50,12 +50,12 @@ Contratos de evento documentados em:
 - `go-gateway/docs/projects/KAFKA.md`
 - `nestjs-anti-fraud/docs/projects/EVENTS.md`
 
-## Variaveis de ambiente por servico
+## Variáveis de ambiente por serviço
 
 ### Gateway (`go-gateway/.env.local`)
 
 - Servidor: `HTTP_PORT`
-- Seguranca: `API_KEY_SECRETS`, `API_KEY_ACTIVE_KEY_ID`, `API_RATE_LIMIT_PER_MINUTE`, `API_RATE_LIMIT_BURST`
+- Segurança: `API_KEY_SECRETS`, `API_KEY_ACTIVE_KEY_ID`, `API_RATE_LIMIT_PER_MINUTE`, `API_RATE_LIMIT_BURST`
 - Limites: `ACCOUNT_LIMIT_MAX_AMOUNT_PER_TX_CENTS`, `ACCOUNT_LIMIT_MAX_DAILY_VOLUME_CENTS`, `ACCOUNT_LIMIT_MAX_DAILY_TRANSACTIONS`
 - Banco: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_SSL_MODE`
 - Kafka: `KAFKA_BROKER`, `KAFKA_PRODUCER_TOPIC`, `KAFKA_CONSUMER_TOPIC`, `KAFKA_DLQ_TOPIC`, `KAFKA_CONSUMER_GROUP_ID`, `KAFKA_CONSUMER_MAX_RETRIES`
@@ -77,7 +77,7 @@ Contratos de evento documentados em:
 ## Referencias adicionais
 
 - Arquitetura: `docs/projects/ARCHITECTURE.md`
-- Seguranca: `docs/projects/SECURITY.md`
+- Segurança: `docs/projects/SECURITY.md`
 - Observabilidade: `docs/projects/OBSERVABILITY.md`
 - Infra: `docs/projects/INFRA.md`
 - Guia operacional: `docs/projects/RUNBOOK.md`

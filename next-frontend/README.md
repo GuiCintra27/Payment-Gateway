@@ -1,6 +1,6 @@
 # Next Frontend
 
-Interface web para onboarding, login por API key, gerenciamento de transferencias e visualizacao de timeline.
+Interface web para onboarding, login por API key, gerenciamento de transferências e visualizacao de timeline.
 
 ## Como rodar
 
@@ -28,7 +28,7 @@ npm run dev
 - `/invoices/create`
 - `/invoices/[id]`
 
-## Documentacao
+## Documentação
 
-- Indice do servico: `next-frontend/docs/projects/INDEX.md`
+- Indice do serviço: `next-frontend/docs/projects/INDEX.md`
 - Indice do projeto: `docs/projects/INDEX.md`

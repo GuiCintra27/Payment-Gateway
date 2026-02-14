@@ -1,4 +1,4 @@
-# Inicio rapido
+# Início rapido
 
 ## Pre-requisitos
 

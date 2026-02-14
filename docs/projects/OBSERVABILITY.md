@@ -22,7 +22,7 @@ Logs:
 - `X-Request-Id` e propagado para o Kafka via header `x-request-id`.
 ## Logs persistidos (Loki + Promtail)
 
-Para ambiente local/producao-like, a stack de logs usa Loki + Promtail + Grafana.
+Para ambiente local/produção-like, a stack de logs usa Loki + Promtail + Grafana.
 
 Subir stack:
 

@@ -16,14 +16,14 @@
 - Exibe a API key apenas uma vez.
 - Botao para copiar e seguir para a lista.
 
-## Lista de transferencias (`/invoices`)
+## Lista de transferências (`/invoices`)
 
 - Lista com status e valores.
-- Pagina de detalhes via `/invoices/[id]`.
-- Paginacao via query params `page` e `size`.
+- Página de detalhes via `/invoices/[id]`.
+- Paginação via query params `page` e `size`.
 
-## Criar transferencia (`/invoices/create`)
+## Criar transferência (`/invoices/create`)
 
-- Formulario de cartao + dados da transferencia.
+- Formulario de cartão + dados da transferência.
 - Envia via Server Action para `POST /invoice`.
-- Erros sao exibidos no topo.
+- Erros são exibidos no topo.

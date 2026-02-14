@@ -13,15 +13,15 @@
 ## Erros de hidratacao
 
 - Limpe cache do navegador.
-- Verifique se extensoes nao estao modificando o HTML.
+- Verifique se extensoes não estão modificando o HTML.
 
-## Falha ao criar transferencia
+## Falha ao criar transferência
 
 - Verifique se o gateway esta ativo.
 - Confira logs do `createInvoiceAction`.
 
-## Transacao fica pendente para sempre
+## Transação fica pendente para sempre
 
-- O worker Kafka do antifraude pode nao estar rodando.
+- O worker Kafka do antifraude pode não estar rodando.
 - Rode `START_ANTIFRAUD_WORKER=true ./start-dev.sh` ou `npm run start:kafka:dev` em `nestjs-anti-fraud`.
 - No Docker, verifique `docker compose logs -f nestjs-worker` e `http://localhost:3101/metrics`.

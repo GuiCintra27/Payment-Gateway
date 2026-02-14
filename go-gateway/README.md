@@ -1,6 +1,6 @@
 # Go Gateway
 
-Servico principal da API de pagamentos (contas, transferencias, idempotencia, outbox e replay de DLQ).
+Serviço principal da API de pagamentos (contas, transferências, idempotencia, outbox e replay de DLQ).
 
 ## Como rodar
 
@@ -30,7 +30,7 @@ go run cmd/app/main.go
 - `GET /metrics/prom`
 - `GET /swagger/index.html`
 
-## Documentacao
+## Documentação
 
-- Indice do servico: `go-gateway/docs/projects/INDEX.md`
+- Indice do serviço: `go-gateway/docs/projects/INDEX.md`
 - Indice do projeto: `docs/projects/INDEX.md`

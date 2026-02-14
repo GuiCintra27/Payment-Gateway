@@ -22,8 +22,8 @@
 
 ## Resultado
 
-O resultado da analise e publicado em `transactions_result` via listener do evento `invoice.processed`.
+O resultado da análise e publicado em `transactions_result` via listener do evento `invoice.processed`.
 
 ## Metrics
 
-- O worker expõe `GET /metrics` na porta definida por `ANTIFRAUD_WORKER_PORT` (padrao: 3101).
+- O worker expõe `GET /metrics` na porta definida por `ANTIFRAUD_WORKER_PORT` (padrão: 3101).

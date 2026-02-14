@@ -1,10 +1,10 @@
-# Arquivo de documentacao
+# Arquivo de documentação
 
-Este diretorio guarda documentacao historica util para rastreabilidade tecnica, mas que nao faz parte da narrativa publica principal do projeto.
+Este diretório guarda documentação historica útil para rastreabilidade tecnica, mas que não faz parte da narrativa publica principal do projeto.
 
-- `docs/archive/local/`: planos internos, logs de implementacao e iteracoes.
-- `docs/projects/archive/`: versoes antigas da documentacao publica.
+- `docs/archive/local/`: planos internos, logs de implementacao e iterações.
+- `docs/projects/archive/`: versões antigas da documentação publica.
 
-O conteudo arquivado nao e a fonte de verdade do comportamento atual.
+O conteúdo arquivado não e a fonte de verdade do comportamento atual.
 
 Arquivado em: 2026-02-14

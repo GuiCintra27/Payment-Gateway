@@ -11,7 +11,7 @@ Query params usados:
 
 - `?error=invalid_api_key`
 
-## Criar transferencia (`/invoices/create`)
+## Criar transferência (`/invoices/create`)
 
 - `?error=invalid_expiry`
 - `?error=validation_error`
@@ -20,4 +20,4 @@ Query params usados:
 ## Origem dos erros
 
 - Falhas no gateway geram redirect com query param.
-- Mensagens sao convertidas em alertas no topo da pagina.
+- Mensagens são convertidas em alertas no topo da página.

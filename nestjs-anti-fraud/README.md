@@ -1,6 +1,6 @@
 # NestJS Antifraude
 
-Servico antifraude que consome eventos de pagamentos pendentes e publica o resultado das analises.
+Serviço antifraude que consome eventos de pagamentos pendentes e publica o resultado das analises.
 
 ## Como rodar
 
@@ -29,7 +29,7 @@ npm run start:kafka:dev
 - `GET /metrics`
 - `GET /metrics/prom`
 
-## Documentacao
+## Documentação
 
-- Indice do servico: `nestjs-anti-fraud/docs/projects/INDEX.md`
+- Indice do serviço: `nestjs-anti-fraud/docs/projects/INDEX.md`
 - Indice do projeto: `docs/projects/INDEX.md`

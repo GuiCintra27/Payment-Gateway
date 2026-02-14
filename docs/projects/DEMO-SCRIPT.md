@@ -1,6 +1,6 @@
 # Script de demo (5-7 min)
 
-Objetivo: demonstrar arquitetura, fluxo principal, confiabilidade e operacao do Payment Gateway em uma apresentacao curta.
+Objetivo: demonstrar arquitetura, fluxo principal, confiabilidade e operação do Payment Gateway em uma apresentacao curta.
 
 ## Preparacao (antes da demo)
 
@@ -18,7 +18,7 @@ curl -s http://localhost:3001/metrics >/dev/null && echo "antifraud api ok"
 curl -s http://localhost:3101/metrics >/dev/null && echo "antifraud worker ok"
 ```
 
-3. Definir variaveis da demo:
+3. Definir variáveis da demo:
 
 ```bash
 export BASE_URL="http://localhost:8080"
@@ -29,7 +29,7 @@ export REQUEST_ID="demo-$(date +%s)"
 
 ### 00:00-00:45 - Contexto
 
-- Problema: processar transferencias com decisao antifraude assincrona para casos de alto valor.
+- Problema: processar transferências com decisao antifraude assincrona para casos de alto valor.
 - Arquitetura: Next.js (UI), Go Gateway (API), NestJS (antifraude API + worker), Kafka e Postgres.
 - Resultado: fluxo resiliente com idempotencia, outbox/inbox, deduplicacao e DLQ.
 
@@ -56,7 +56,7 @@ INVOICE_RESPONSE=$(curl -s -X POST "$BASE_URL/invoice" \
   -H "Idempotency-Key: demo-pending-001" \
   -d '{
     "amount": 15200,
-    "description": "Transferencia corporativa - lote demo",
+    "description": "Transferência corporativa - lote demo",
     "payment_type": "credit_card",
     "card_number": "4242424242424242",
     "cvv": "123",
@@ -98,7 +98,7 @@ curl -s -X POST "$BASE_URL/invoice" \
   -H "Idempotency-Key: demo-pending-001" \
   -d '{
     "amount": 15200,
-    "description": "Transferencia corporativa - lote demo",
+    "description": "Transferência corporativa - lote demo",
     "payment_type": "credit_card",
     "card_number": "4242424242424242",
     "cvv": "123",
@@ -113,7 +113,7 @@ Falar durante a demo:
 - Inbox/dedup evita reprocessamento duplicado.
 - Falhas do consumer seguem para DLQ com replay controlado.
 
-### 03:30-05:00 - Operacao e observabilidade
+### 03:30-05:00 - Operação e observabilidade
 
 1. Correlation por request id:
 
@@ -138,11 +138,11 @@ echo "Abra o Grafana e filtre por request_id=$REQUEST_ID"
 
 ### 05:00-06:30 - Encerramento
 
-- Tradeoffs: simplicidade de operacao local vs. componentes separados para producao.
-- Evolucao: hardening de testes cross-service e automatizacao de release ja integrada ao CI.
+- Tradeoffs: simplicidade de operação local vs. componentes separados para produção.
+- Evolução: hardening de testes cross-service e automatizacao de release já integrada ao CI.
 - Mensagem final: projeto pronto para demonstrar nivel pleno+ em backend distribuido.
 
-## Roteiro resumido para cola rapida
+## Roteiro resumido para cola rápida
 
 ```bash
 export BASE_URL="http://localhost:8080"
@@ -158,7 +158,7 @@ INVOICE_RESPONSE=$(curl -s -X POST "$BASE_URL/invoice" \
   -H "X-API-KEY: $API_KEY" \
   -H "X-Request-Id: $REQUEST_ID" \
   -H "Idempotency-Key: demo-pending-001" \
-  -d '{"amount":15200,"description":"Transferencia demo","payment_type":"credit_card","card_number":"4242424242424242","cvv":"123","expiry_month":12,"expiry_year":2030,"cardholder_name":"Demo Owner"}')
+  -d '{"amount":15200,"description":"Transferência demo","payment_type":"credit_card","card_number":"4242424242424242","cvv":"123","expiry_month":12,"expiry_year":2030,"cardholder_name":"Demo Owner"}')
 export INVOICE_ID=$(echo "$INVOICE_RESPONSE" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p')
 
 curl -s "$BASE_URL/invoice/$INVOICE_ID/events" -H "X-API-KEY: $API_KEY"

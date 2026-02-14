@@ -1,6 +1,6 @@
 # Erros
 
-Formato padrao:
+Formato padrão:
 
 ```json
 {

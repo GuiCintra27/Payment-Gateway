@@ -9,7 +9,7 @@ O repositorio possui dois arquivos principais:
 - `docker-compose.monitoring.yaml`: sobe Prometheus + Grafana (dashboard).
 - `docker-compose.logging.yaml`: sobe Loki + Promtail + Grafana (logs).
 
-### Servicos (docker-compose.yaml)
+### Serviços (docker-compose.yaml)
 
 - `gateway-db` (Postgres)
 - `nestjs-db` (Postgres)
@@ -22,7 +22,7 @@ O repositorio possui dois arquivos principais:
 - `nestjs-worker`
 - `next-frontend`
 
-### Servicos (docker-compose.infra.yaml)
+### Serviços (docker-compose.infra.yaml)
 
 - `gateway-db`
 - `nestjs-db`
@@ -30,12 +30,12 @@ O repositorio possui dois arquivos principais:
 - `kafka-init`
 - `go-migrate`
 
-### Servicos (docker-compose.monitoring.yaml)
+### Serviços (docker-compose.monitoring.yaml)
 
 - `prometheus`
 - `grafana`
 
-### Servicos (docker-compose.logging.yaml)
+### Serviços (docker-compose.logging.yaml)
 
 - `loki`
 - `promtail`
@@ -49,7 +49,7 @@ O repositorio possui dois arquivos principais:
 
 ## Redes
 
-Todos os servicos compartilham a rede default do compose (`payment-gateway_default`).
+Todos os serviços compartilham a rede default do compose (`payment-gateway_default`).
 
 ## Portas
 
@@ -64,7 +64,7 @@ Todos os servicos compartilham a rede default do compose (`payment-gateway_defau
 - Grafana: 3004
 - Grafana (logs): 3005
 
-## Execucao local
+## Execução local
 
 Para rodar apps localmente com infra no Docker:
 
@@ -72,7 +72,7 @@ Para rodar apps localmente com infra no Docker:
 docker compose -f docker-compose.infra.yaml up -d
 ```
 
-Depois rode os servicos em cada pasta (ver `README.md` da raiz).
+Depois rode os serviços em cada pasta (ver `README.md` da raiz).
 
 ## UID/GID
 

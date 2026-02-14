@@ -27,5 +27,5 @@
 ## Regras de publicacao
 
 - O evento `invoice.processed` dispara o publish para o Kafka.
-- O status e `approved` quando nao ha fraude, `rejected` quando ha fraude.
+- O status e `approved` quando não ha fraude, `rejected` quando ha fraude.
 - O header `x-request-id` e propagado quando presente.

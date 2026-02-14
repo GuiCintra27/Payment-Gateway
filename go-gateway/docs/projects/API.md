@@ -2,10 +2,10 @@
 
 Base URL: `http://localhost:8080`
 
-## Autenticacao
+## Autenticação
 
 - Header obrigatorio: `X-API-KEY`
-- Excecoes: `POST /accounts` e `POST /demo`
+- Exceções: `POST /accounts` e `POST /demo`
 
 ## POST /accounts
 

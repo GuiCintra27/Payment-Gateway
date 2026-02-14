@@ -6,9 +6,9 @@
 ./start-dev.sh
 ```
 
-Variaveis uteis:
+Variáveis uteis:
 
-- `SKIP_INFRA=true` (nao sobe Kafka/Postgres)
+- `SKIP_INFRA=true` (não sobe Kafka/Postgres)
 - `FORCE_KILL_PORTS=true` (libera portas automaticamente)
 - `STOP_INFRA_ON_EXIT=true` (derruba infra ao sair)
 - `ANTIFRAUD_WORKER_PORT=3101` (porta do worker/metrics)
@@ -17,7 +17,7 @@ Variaveis uteis:
 - `LOG_DIR=./.logs` (pasta dos logs quando `LOG_TO_FILE=true`)
 - `INFRA_START_TIMEOUT=60` (timeout para Kafka/Postgres)
 - `SERVICE_START_TIMEOUT=25` (timeout para APIs/Frontend)
-- `KAFKA_REQUIRED=true` (falha se Kafka nao estiver disponivel com o worker ativo)
+- `KAFKA_REQUIRED=true` (falha se Kafka não estiver disponivel com o worker ativo)
 
 ## Subir tudo via Docker
 
@@ -71,7 +71,7 @@ Portas:
 
 ## Replay de DLQ (gateway)
 
-Dry-run (nao publica):
+Dry-run (não publica):
 
 ```bash
 cd go-gateway
@@ -99,11 +99,11 @@ docker compose -f docker-compose.infra.yaml down
 
 ## Matriz de troubleshooting rapido
 
-| Sintoma | Causa comum | Diagnostico | Acao |
+| Sintoma | Causa comum | Diagnostico | Ação |
 |---|---|---|---|
 | `Port ... is busy` no `start-dev.sh` | Processo antigo ocupando porta | `lsof -iTCP:<porta> -sTCP:LISTEN` | `FORCE_KILL_PORTS=true ./start-dev.sh` |
 | `lookup gateway-db` / `lookup kafka` no local | Config local com host de container | `cat go-gateway/.env.local` e `cat nestjs-anti-fraud/.env.local` | Recriar `.env.local` a partir de `.env.example` |
 | `EACCES` em `dist`, `.next`, `node_modules` | Permissao herdada de container | `ls -ld <pasta>` | Reexecutar `./start-dev.sh` (autocorrecao) ou ajustar ownership manual |
-| Antifraude nao sobe apos migrate | DB nao pronto ou migration pendente | `docker compose -f docker-compose.infra.yaml ps` e logs do processo | Subir infra novamente e repetir `./start-dev.sh` |
+| Antifraude não sobe apos migrate | DB não pronto ou migration pendente | `docker compose -f docker-compose.infra.yaml ps` e logs do processo | Subir infra novamente e repetir `./start-dev.sh` |
 | Warning de orphan containers | Containers antigos no projeto | `docker compose ps -a` | `docker compose down --remove-orphans` |
-| Kafka fora do ar | Infra nao iniciada ou broker indisponivel | `docker compose -f docker-compose.infra.yaml ps` | `docker compose -f docker-compose.infra.yaml up -d` |
+| Kafka fora do ar | Infra não iniciada ou broker indisponivel | `docker compose -f docker-compose.infra.yaml ps` | `docker compose -f docker-compose.infra.yaml up -d` |

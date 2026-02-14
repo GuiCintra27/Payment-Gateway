@@ -12,17 +12,17 @@ flowchart LR
   KAFKA -->|pending_transactions| AF
 ```
 
-## Visao geral
+## Visão geral
 
-O sistema e dividido em tres servicos principais e dois bancos de dados separados:
+O sistema e dividido em três serviços principais e dois bancos de dados separados:
 
-- `next-frontend` (UI e fluxo do usuario)
-- `go-gateway` (API de contas e transferencias)
-- `nestjs-anti-fraud` (analise antifraude)
-- Postgres do gateway (contas, transferencias e eventos processados)
-- Postgres do antifraude (contas, transferencias processadas e historico)
+- `next-frontend` (UI e fluxo do usuário)
+- `go-gateway` (API de contas e transferências)
+- `nestjs-anti-fraud` (análise antifraude)
+- Postgres do gateway (contas, transferências e eventos processados)
+- Postgres do antifraude (contas, transferências processadas e histórico)
 
-Fluxo macro (sincrono + assincroano):
+Fluxo macro (síncrono + assíncrono):
 
 ```
 [Next.js] -> [Go Gateway] -> [Postgres gateway]
@@ -35,37 +35,37 @@ Fluxo macro (sincrono + assincroano):
              [NestJS Antifraude] -> [Postgres antifraude]
 ```
 
-## Responsabilidades por servico
+## Responsabilidades por serviço
 
 ### Frontend (Next.js)
 
 - Onboarding: criar conta e modo demo
-- Autenticacao baseada em API key via cookie
-- Fluxo de transferencias: listagem, detalhes e criacao
+- Autenticação baseada em API key via cookie
+- Fluxo de transferências: listagem, detalhes e criação
 - Server Actions para chamadas ao Gateway
 
 ### Gateway (Go)
 
-- CRUD minimo de contas e transferencias
+- CRUD mínimo de contas e transferências
 - Regra de status:
   - valores > 10000 ficam `pending` e vao para antifraude
-  - valores menores tem aprovacao/rejeicao imediata
-- Publica eventos de transacoes pendentes no Kafka
-- Consome resultados do antifraude e atualiza transferencias
+  - valores menores tem aprovação/rejeição imediata
+- Publica eventos de transações pendentes no Kafka
+- Consome resultados do antifraude e atualiza transferências
 - Rate limit por API key
 - Hash de API key (HMAC) no armazenamento
 
 ### Antifraude (NestJS)
 
 - HTTP app expõe API/metrics (porta 3001)
-- Worker Kafka consome eventos de transacoes pendentes e expõe metrics (porta 3101)
+- Worker Kafka consome eventos de transações pendentes e expõe metrics (porta 3101)
 - Aplica regras de fraude (specifications)
-- Persiste resultado em banco proprio
+- Persiste resultado em banco próprio
 - Publica o resultado no Kafka
 
 ## Confiabilidade e resiliencia
 
-- Gateway salva eventos pendentes via outbox (`outbox_events`) e publica assincrono.
+- Gateway salva eventos pendentes via outbox (`outbox_events`) e publica assíncrono.
 - Gateway faz deduplicacao por `event_id` (tabela `processed_events`) antes de aplicar resultado.
 - Antifraude usa inbox (`processed_events`) para dedup de mensagens consumidas do Kafka.
 - Consumer do Gateway faz retry com backoff e envia para DLQ apos N tentativas.
@@ -76,6 +76,6 @@ Fluxo macro (sincrono + assincroano):
 
 ## Ownership de dados
 
-- Gateway e a fonte de verdade para contas e transferencias exibidas na UI.
-- Antifraude mantem seu proprio historico (nao replica dados do gateway).
-- A integracao entre servicos acontece apenas via Kafka.
+- Gateway e a fonte de verdade para contas e transferências exibidas na UI.
+- Antifraude mantem seu próprio histórico (não replica dados do gateway).
+- A integração entre serviços acontece apenas via Kafka.

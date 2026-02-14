@@ -1,13 +1,13 @@
-# Sessao de autenticacao
+# Sessão de autenticação
 
 ## Cookies
 
 - `apiKey`: usado para autenticar requests no gateway.
-- `apiKeyPreview`: usado para exibir a chave uma unica vez.
+- `apiKeyPreview`: usado para exibir a chave uma única vez.
 
 ## Middleware
 
-O middleware do Next redireciona rotas `/invoices/*` para `/login` quando nao ha `apiKey`.
+O middleware do Next redireciona rotas `/invoices/*` para `/login` quando não ha `apiKey`.
 
 ## Server Actions
 

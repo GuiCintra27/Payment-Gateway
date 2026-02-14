@@ -1,4 +1,4 @@
-# Acoes de servidor
+# Ações de servidor
 
 ## account-actions.ts
 

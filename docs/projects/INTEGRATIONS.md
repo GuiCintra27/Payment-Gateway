@@ -1,8 +1,8 @@
-# Integracoes
+# Integrações
 
 ## Frontend -> Gateway (HTTP)
 
-Autenticacao sempre via header `X-API-KEY` (exceto `POST /accounts` e `POST /demo`).
+Autenticação sempre via header `X-API-KEY` (exceto `POST /accounts` e `POST /demo`).
 
 Idempotencia opcional via header `Idempotency-Key` no `POST /invoice`.
 
@@ -16,7 +16,7 @@ Principais endpoints:
 - `GET /invoice/{id}`
 - `GET /invoice/{id}/events`
 
-Erros sao retornados em JSON:
+Erros são retornados em JSON:
 
 ```json
 {
@@ -36,7 +36,7 @@ Headers:
 
 ### Topic: `pending_transactions`
 
-Publicado pelo gateway quando uma transferencia e classificada como `pending` (valor alto).
+Publicado pelo gateway quando uma transferência e classificada como `pending` (valor alto).
 
 Payload:
 
@@ -54,7 +54,7 @@ Payload:
 
 ### Topic: `transactions_result`
 
-Publicado pelo antifraude apos processar a transferencia.
+Publicado pelo antifraude apos processar a transferência.
 
 Payload:
 

@@ -1,10 +1,10 @@
-# Indice de Documentacao
+# Indice de Documentação
 
-Ponto de entrada principal para a documentacao publica do projeto.
+Ponto de entrada principal para a documentação publica do projeto.
 
 ## Comecando
 
-- [Inicio rapido](./QUICK-START.md)
+- [Início rapido](./QUICK-START.md)
 - [Referencia tecnica](./TECHNICAL-REFERENCE.md)
 - [Guia operacional](./RUNBOOK.md)
 
@@ -13,12 +13,12 @@ Ponto de entrada principal para a documentacao publica do projeto.
 - [Arquitetura](./ARCHITECTURE.md)
 - [Modelo de dados](./DATA-MODEL.md)
 - [Fluxos](./FLOWS.md)
-- [Integracoes](./INTEGRATIONS.md)
+- [Integrações](./INTEGRATIONS.md)
 
-## Plataforma e operacao
+## Plataforma e operação
 
 - [Infra](./INFRA.md)
-- [Seguranca](./SECURITY.md)
+- [Segurança](./SECURITY.md)
 - [Observabilidade](./OBSERVABILITY.md)
 
 ## Demo
@@ -28,4 +28,4 @@ Ponto de entrada principal para a documentacao publica do projeto.
 ## Arquivo
 
 - [Arquivo de docs do projeto](./archive/)
-- [Arquivo historico interno](../archive/local/)
+- [Arquivo histórico interno](../archive/local/)

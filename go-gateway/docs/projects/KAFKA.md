@@ -1,8 +1,8 @@
 # Kafka
 
-## Configuracao
+## Configuração
 
-Variaveis principais:
+Variáveis principais:
 
 - `KAFKA_BROKER`
 - `KAFKA_PRODUCER_TOPIC` (default: pending_transactions)
@@ -13,14 +13,14 @@ Variaveis principais:
 
 ## Producer
 
-Publica `pending_transactions` quando a transferencia fica `pending`.
+Publica `pending_transactions` quando a transferência fica `pending`.
 O publish e feito via outbox (tabela + worker) para evitar perda de eventos.
 
 Payload inclui `schema_version` e `amount_cents` (mantem `amount` por compatibilidade).
 
 ## Consumer
 
-Consome `transactions_result` e atualiza status das transferencias.
+Consome `transactions_result` e atualiza status das transferências.
 
 Payload inclui `schema_version`.
 
