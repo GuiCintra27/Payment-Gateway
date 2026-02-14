@@ -1,5 +1,7 @@
 # Segurança
 
+[**PT-BR**](./SECURITY.md) | [EN](./en/SECURITY.md)
+
 ## API key
 
 - A API key e gerada no gateway com `crypto/rand`.

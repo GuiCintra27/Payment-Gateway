@@ -1,5 +1,7 @@
 # Guia operacional
 
+[**PT-BR**](./RUNBOOK.md) | [EN](./en/RUNBOOK.md)
+
 ## Subir localmente (script)
 
 ```bash

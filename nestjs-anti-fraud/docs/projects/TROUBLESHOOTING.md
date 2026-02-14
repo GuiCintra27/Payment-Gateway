@@ -1,5 +1,7 @@
 # Resolucao de problemas
 
+[**PT-BR**](./TROUBLESHOOTING.md) | [EN](./en/TROUBLESHOOTING.md)
+
 ## Prisma migration falha
 
 - Verifique `DATABASE_URL` em `.env.local`.

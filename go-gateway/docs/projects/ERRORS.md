@@ -1,5 +1,7 @@
 # Erros
 
+[**PT-BR**](./ERRORS.md) | [EN](./en/ERRORS.md)
+
 Formato padrão:
 
 ```json

@@ -1,5 +1,7 @@
 # Ações de servidor
 
+[**PT-BR**](./SERVER-ACTIONS.md) | [EN](./en/SERVER-ACTIONS.md)
+
 ## account-actions.ts
 
 - `createAccountAction`: cria conta via `POST /accounts`, grava cookies e redireciona para `/welcome`.

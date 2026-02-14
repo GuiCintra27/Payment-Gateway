@@ -1,5 +1,7 @@
 # Metricas
 
+[**PT-BR**](./METRICS.md) | [EN](./en/METRICS.md)
+
 Endpoints:
 
 - `GET /metrics` (HTTP app)

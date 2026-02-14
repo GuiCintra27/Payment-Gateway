@@ -1,5 +1,7 @@
 # Payment Gateway
 
+[**PT-BR**](./README.md) | [EN](./README.en.md)
+
 Projeto de gateway de pagamentos orientado a eventos, criado para demonstrar fundamentos de engenharia backend em sistemas distribuídos.
 
 ## Visão geral
@@ -54,6 +56,7 @@ Use:
 
 Comece aqui:
 - `docs/projects/INDEX.md`
+- English docs entrypoint: `docs/projects/en/INDEX.md`
 
 Documentação principal:
 - `docs/projects/ARCHITECTURE.md`
@@ -66,6 +69,9 @@ Documentação por serviço:
 - `go-gateway/docs/projects/INDEX.md`
 - `nestjs-anti-fraud/docs/projects/INDEX.md`
 - `next-frontend/docs/projects/INDEX.md`
+- `go-gateway/docs/projects/en/INDEX.md`
+- `nestjs-anti-fraud/docs/projects/en/INDEX.md`
+- `next-frontend/docs/projects/en/INDEX.md`
 
 ## Release e CI
 

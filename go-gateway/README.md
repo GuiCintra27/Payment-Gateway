@@ -1,5 +1,7 @@
 # Go Gateway
 
+[**PT-BR**](./README.md) | [EN](./docs/projects/en/INDEX.md)
+
 Serviço principal da API de pagamentos (contas, transferências, idempotencia, outbox e replay de DLQ).
 
 ## Como rodar
@@ -33,4 +35,5 @@ go run cmd/app/main.go
 ## Documentação
 
 - Indice do serviço: `go-gateway/docs/projects/INDEX.md`
+- Service docs (EN): `go-gateway/docs/projects/en/INDEX.md`
 - Indice do projeto: `docs/projects/INDEX.md`

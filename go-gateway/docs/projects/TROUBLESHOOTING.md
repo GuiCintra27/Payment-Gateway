@@ -1,5 +1,7 @@
 # Resolucao de problemas
 
+[**PT-BR**](./TROUBLESHOOTING.md) | [EN](./en/TROUBLESHOOTING.md)
+
 ## Porta ocupada
 
 - Verifique: `lsof -iTCP:8080 -sTCP:LISTEN`

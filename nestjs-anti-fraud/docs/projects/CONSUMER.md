@@ -1,5 +1,7 @@
 # Consumidor
 
+[**PT-BR**](./CONSUMER.md) | [EN](./en/CONSUMER.md)
+
 ## Input (Kafka)
 
 - Topic: `pending_transactions`

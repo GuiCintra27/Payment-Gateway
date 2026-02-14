@@ -1,5 +1,7 @@
 # Tratamento de erros
 
+[**PT-BR**](./ERROR-HANDLING.md) | [EN](./en/ERROR-HANDLING.md)
+
 ## Home (`/`)
 
 Query params usados:

@@ -1,5 +1,7 @@
 # Arquitetura
 
+[**PT-BR**](./ARCHITECTURE.md) | [EN](./en/ARCHITECTURE.md)
+
 ## Diagrama (Mermaid)
 
 ```mermaid

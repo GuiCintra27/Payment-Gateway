@@ -1,5 +1,7 @@
 # Fluxos de UI
 
+[**PT-BR**](./UI-FLOWS.md) | [EN](./en/UI-FLOWS.md)
+
 ## Home (`/`)
 
 - Formulario para criar conta (nome + email).

@@ -1,5 +1,7 @@
 # Referencia tecnica
 
+[**PT-BR**](./TECHNICAL-REFERENCE.md) | [EN](./en/TECHNICAL-REFERENCE.md)
+
 ## Serviços e portas
 
 - Frontend local: `3000`

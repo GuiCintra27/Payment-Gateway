@@ -1,5 +1,7 @@
 # Indice de Documentação
 
+[**PT-BR**](./INDEX.md) | [EN](./en/INDEX.md)
+
 Ponto de entrada principal para a documentação publica do projeto.
 
 ## Comecando
@@ -29,3 +31,7 @@ Ponto de entrada principal para a documentação publica do projeto.
 
 - [Arquivo de docs do projeto](./archive/)
 - [Arquivo histórico interno](../archive/local/)
+
+## Versão em inglês
+
+- [Documentation index (EN)](./en/INDEX.md)

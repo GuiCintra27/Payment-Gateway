@@ -1,5 +1,7 @@
 # Eventos
 
+[**PT-BR**](./EVENTS.md) | [EN](./en/EVENTS.md)
+
 ## Entrada (pending_transactions)
 
 ```json

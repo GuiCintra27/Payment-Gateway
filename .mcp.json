@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest", "--headless=true", "--isolated=true"]
+    },
+    "shadcn-ui": {
+      "command": "npx",
+      "args": ["-y", "shadcn-ui-mcp-server@latest"]
+    },
+    "tailwindcss": {
+      "command": "npx",
+      "args": ["-y", "tailwindcss-mcp-server@latest"]
+    }
+  }
+}

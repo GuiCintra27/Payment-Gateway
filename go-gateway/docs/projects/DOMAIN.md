@@ -1,5 +1,7 @@
 # Dominio
 
+[**PT-BR**](./DOMAIN.md) | [EN](./en/DOMAIN.md)
+
 ## Status de transferência
 
 - `pending`

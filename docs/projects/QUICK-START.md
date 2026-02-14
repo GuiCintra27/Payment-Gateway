@@ -1,5 +1,7 @@
 # Início rapido
 
+[**PT-BR**](./QUICK-START.md) | [EN](./en/QUICK-START.md)
+
 ## Pre-requisitos
 
 - Docker + Docker Compose

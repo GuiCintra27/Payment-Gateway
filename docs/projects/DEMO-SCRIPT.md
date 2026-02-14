@@ -1,5 +1,7 @@
 # Script de demo (5-7 min)
 
+[**PT-BR**](./DEMO-SCRIPT.md) | [EN](./en/DEMO-SCRIPT.md)
+
 Objetivo: demonstrar arquitetura, fluxo principal, confiabilidade e operação do Payment Gateway em uma apresentacao curta.
 
 ## Preparacao (antes da demo)

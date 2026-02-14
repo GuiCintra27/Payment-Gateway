@@ -1,5 +1,7 @@
 # Modelo de dados
 
+[**PT-BR**](./DATA-MODEL.md) | [EN](./en/DATA-MODEL.md)
+
 ## Gateway (Postgres)
 
 ### accounts

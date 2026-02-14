@@ -1,5 +1,7 @@
 # Integrações
 
+[**PT-BR**](./INTEGRATIONS.md) | [EN](./en/INTEGRATIONS.md)
+
 ## Frontend -> Gateway (HTTP)
 
 Autenticação sempre via header `X-API-KEY` (exceto `POST /accounts` e `POST /demo`).

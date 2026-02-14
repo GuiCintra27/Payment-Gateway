@@ -1,5 +1,7 @@
 # Sessão de autenticação
 
+[**PT-BR**](./AUTH-SESSION.md) | [EN](./en/AUTH-SESSION.md)
+
 ## Cookies
 
 - `apiKey`: usado para autenticar requests no gateway.

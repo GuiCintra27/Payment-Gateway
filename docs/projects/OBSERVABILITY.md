@@ -1,5 +1,7 @@
 # Observabilidade
 
+[**PT-BR**](./OBSERVABILITY.md) | [EN](./en/OBSERVABILITY.md)
+
 ## Gateway (Go)
 
 Endpoint:

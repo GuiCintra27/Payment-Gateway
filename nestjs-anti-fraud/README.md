@@ -1,5 +1,7 @@
 # NestJS Antifraude
 
+[**PT-BR**](./README.md) | [EN](./docs/projects/en/INDEX.md)
+
 Serviço antifraude que consome eventos de pagamentos pendentes e publica o resultado das analises.
 
 ## Como rodar
@@ -32,4 +34,5 @@ npm run start:kafka:dev
 ## Documentação
 
 - Indice do serviço: `nestjs-anti-fraud/docs/projects/INDEX.md`
+- Service docs (EN): `nestjs-anti-fraud/docs/projects/en/INDEX.md`
 - Indice do projeto: `docs/projects/INDEX.md`

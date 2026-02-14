@@ -1,5 +1,7 @@
 # Banco de dados
 
+[**PT-BR**](./DATABASE.md) | [EN](./en/DATABASE.md)
+
 ## accounts
 
 - `id` (uuid, pk)

@@ -1,5 +1,7 @@
 # API
 
+[**PT-BR**](./API.md) | [EN](./en/API.md)
+
 Base URL: `http://localhost:8080`
 
 ## Autenticação

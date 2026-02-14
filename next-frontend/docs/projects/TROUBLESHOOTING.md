@@ -1,5 +1,7 @@
 # Resolucao de problemas
 
+[**PT-BR**](./TROUBLESHOOTING.md) | [EN](./en/TROUBLESHOOTING.md)
+
 ## API base URL errado
 
 - Verifique `API_BASE_URL` em `.env.local`.

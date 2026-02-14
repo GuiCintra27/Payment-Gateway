@@ -1,5 +1,7 @@
 # Infra
 
+[**PT-BR**](./INFRA.md) | [EN](./en/INFRA.md)
+
 ## Docker Compose
 
 O repositorio possui dois arquivos principais:

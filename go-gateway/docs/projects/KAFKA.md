@@ -1,5 +1,7 @@
 # Kafka
 
+[**PT-BR**](./KAFKA.md) | [EN](./en/KAFKA.md)
+
 ## Configuração
 
 Variáveis principais:
