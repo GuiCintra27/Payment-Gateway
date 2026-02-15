@@ -14,6 +14,7 @@ type AccountRepository interface {
 type InvoiceRepository interface {
 	Save(invoice *Invoice, requestID string) error
 	SaveWithOutbox(invoice *Invoice, eventType string, payload []byte, correlationID string) error
+	AddInvoiceEvent(invoiceID, eventType string, fromStatus, toStatus *Status, metadata map[string]any, requestID string, createdAt *time.Time) error
 	FindByID(id string) (*Invoice, error)
 	FindByAccountID(accountID string) ([]*Invoice, error)
 	GetDailyUsage(accountID string, start, end time.Time) (*DailyUsage, error)

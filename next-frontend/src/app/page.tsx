@@ -40,7 +40,7 @@ export default async function HomePage({
       {/* Hero Section */}
       <section className="text-center space-y-4 py-8">
         <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground tracking-tight">
-          Gateway de{" "}
+          <span>Gateway de</span>{" "}
           <span className="text-gradient-metallic">Pagamentos</span>
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-balance">

@@ -88,11 +88,22 @@ export function AuthForm({ initialError }: AuthFormProps) {
             aria-invalid={!!errors.apiKey}
             {...register("apiKey")}
           />
-          <Button type="submit" disabled={isSubmitting} className="px-4">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-4"
+            aria-label={isSubmitting ? "Entrando" : "Entrar"}
+          >
             {isSubmitting ? (
-              <Loader2 className="size-4 animate-spin" />
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                <span>Entrando...</span>
+              </>
             ) : (
-              <ArrowRight className="size-4" />
+              <>
+                <ArrowRight className="size-4" />
+                <span>Entrar</span>
+              </>
             )}
           </Button>
         </div>

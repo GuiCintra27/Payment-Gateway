@@ -106,6 +106,26 @@ func (s *DemoService) seedInvoices(account *domain.Account) error {
 			return err
 		}
 
+		if seed.status == domain.StatusPending {
+			pendingStatus := domain.StatusPending
+			pendingPublishedAt := createdAt.Add(1 * time.Minute)
+			metadata := map[string]any{
+				"source": "demo_seed",
+			}
+
+			if err := s.invoiceRepository.AddInvoiceEvent(
+				invoice.ID,
+				"pending_published",
+				&pendingStatus,
+				&pendingStatus,
+				metadata,
+				"demo-seed",
+				&pendingPublishedAt,
+			); err != nil {
+				return err
+			}
+		}
+
 		if seed.status == domain.StatusApproved {
 			approvedTotalCents += amountCents
 		}

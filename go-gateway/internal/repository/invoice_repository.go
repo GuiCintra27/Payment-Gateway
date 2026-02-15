@@ -314,6 +314,29 @@ func (r *InvoiceRepository) ListEventsByInvoiceID(invoiceID string) ([]*domain.I
 	return events, nil
 }
 
+// AddInvoiceEvent adiciona um evento avulso para uma invoice.
+func (r *InvoiceRepository) AddInvoiceEvent(
+	invoiceID,
+	eventType string,
+	fromStatus,
+	toStatus *domain.Status,
+	metadata map[string]any,
+	requestID string,
+	createdAt *time.Time,
+) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err := r.insertInvoiceEventAt(tx, invoiceID, eventType, fromStatus, toStatus, metadata, requestID, createdAt); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
 func (r *InvoiceRepository) insertInvoiceEvent(
 	tx *sql.Tx,
 	invoiceID string,
@@ -322,6 +345,19 @@ func (r *InvoiceRepository) insertInvoiceEvent(
 	toStatus *domain.Status,
 	metadata map[string]any,
 	requestID string,
+) error {
+	return r.insertInvoiceEventAt(tx, invoiceID, eventType, fromStatus, toStatus, metadata, requestID, nil)
+}
+
+func (r *InvoiceRepository) insertInvoiceEventAt(
+	tx *sql.Tx,
+	invoiceID string,
+	eventType string,
+	fromStatus *domain.Status,
+	toStatus *domain.Status,
+	metadata map[string]any,
+	requestID string,
+	createdAt *time.Time,
 ) error {
 	var fromValue sql.NullString
 	if fromStatus != nil {
@@ -346,15 +382,21 @@ func (r *InvoiceRepository) insertInvoiceEvent(
 		requestValue = sql.NullString{String: requestID, Valid: true}
 	}
 
+	createdValue := time.Now()
+	if createdAt != nil && !createdAt.IsZero() {
+		createdValue = *createdAt
+	}
+
 	_, err := tx.Exec(
 		`INSERT INTO invoice_events (id, invoice_id, event_type, from_status, to_status, metadata, request_id, created_at)
-		 VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW())`,
+		 VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7)`,
 		invoiceID,
 		eventType,
 		fromValue,
 		toValue,
 		metadataValue,
 		requestValue,
+		createdValue,
 	)
 	return err
 }

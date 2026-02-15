@@ -3,6 +3,11 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SCOPE="${1:-${CI_SCOPE:-all}}"
+SMOKE_COMPOSE_ARGS=(-f docker-compose.yaml)
+SMOKE_NESTJS_ENV=""
+SMOKE_NESTJS_ENV_BACKUP=""
+SMOKE_TMP_ENV=""
+SMOKE_TMP_OVERRIDE=""
 
 log() {
   printf "\n[ci] %s\n" "$1"
@@ -48,21 +53,12 @@ wait_for() {
 
 dump_logs() {
   log "Dumping docker compose logs (nestjs, nestjs-worker)"
-  (cd "$ROOT_DIR" && docker compose logs --no-color --tail=200 nestjs nestjs-worker) || true
+  local compose_args=("${SMOKE_COMPOSE_ARGS[@]}")
+  (cd "$ROOT_DIR" && docker compose "${compose_args[@]}" logs --no-color --tail=200 nestjs nestjs-worker) || true
 }
 
-run_smoke() {
-  log "Running smoke (docker compose)"
-  local nestjs_env="$ROOT_DIR/nestjs-anti-fraud/.env"
-  local nestjs_env_backup="$ROOT_DIR/nestjs-anti-fraud/.env.ci.bak"
-
-  if [[ -f "$nestjs_env" ]]; then
-    log "Backing up existing nestjs-anti-fraud/.env for smoke"
-    cp "$nestjs_env" "$nestjs_env_backup"
-  fi
-
-  log "Seeding nestjs-anti-fraud/.env for docker compose smoke"
-  cat >"$nestjs_env" <<'EOF'
+write_smoke_env() {
+  cat <<'EOF'
 DATABASE_URL=postgresql://postgres:root@nestjs-db:5432/mydb?schema=public
 KAFKA_BROKER=kafka:29092
 SUSPICIOUS_VARIATION_PERCENTAGE=50
@@ -71,9 +67,46 @@ SUSPICIOUS_INVOICES_COUNT=3
 SUSPICIOUS_TIMEFRAME_HOURS=1
 ANTIFRAUD_WORKER_PORT=3101
 EOF
+}
+
+run_smoke() {
+  log "Running smoke (docker compose)"
+  SMOKE_NESTJS_ENV="$ROOT_DIR/nestjs-anti-fraud/.env"
+  SMOKE_NESTJS_ENV_BACKUP="$ROOT_DIR/nestjs-anti-fraud/.env.ci.bak"
+
+  if [[ -w "$SMOKE_NESTJS_ENV" && -w "$(dirname "$SMOKE_NESTJS_ENV")" ]]; then
+    if [[ -f "$SMOKE_NESTJS_ENV" ]]; then
+      log "Backing up existing nestjs-anti-fraud/.env for smoke"
+      cp "$SMOKE_NESTJS_ENV" "$SMOKE_NESTJS_ENV_BACKUP"
+    fi
+
+    log "Seeding nestjs-anti-fraud/.env for docker compose smoke"
+    write_smoke_env >"$SMOKE_NESTJS_ENV"
+  else
+    log "No write permission for nestjs-anti-fraud/.env, using temp env override for smoke"
+    SMOKE_TMP_ENV="$(mktemp -t payment-gateway-smoke-env.XXXXXX)"
+    SMOKE_TMP_OVERRIDE="$(mktemp -t payment-gateway-smoke-override.XXXXXX.yaml)"
+    write_smoke_env >"$SMOKE_TMP_ENV"
+
+    cat >"$SMOKE_TMP_OVERRIDE" <<EOF
+services:
+  nestjs:
+    env_file:
+      - $SMOKE_TMP_ENV
+  nestjs-worker:
+    env_file:
+      - $SMOKE_TMP_ENV
+  nestjs-migrate:
+    env_file:
+      - $SMOKE_TMP_ENV
+EOF
+    SMOKE_COMPOSE_ARGS=(-f docker-compose.yaml -f "$SMOKE_TMP_OVERRIDE")
+  fi
+
+  local compose_args=("${SMOKE_COMPOSE_ARGS[@]}")
   (
     cd "$ROOT_DIR"
-    NESTJS_START_CMD=start NESTJS_WORKER_CMD=start:kafka:dev docker compose up -d --build
+    NESTJS_START_CMD=start NESTJS_WORKER_CMD=start:kafka:dev docker compose "${compose_args[@]}" up -d --build
   )
 
   wait_for "http://localhost:8080/health" "gateway health"
@@ -93,14 +126,21 @@ run_e2e() {
 cleanup() {
   if [[ "$SCOPE" == "smoke" || "$SCOPE" == "all" ]]; then
     log "Cleaning up docker compose"
-    (cd "$ROOT_DIR" && docker compose down)
+    local compose_args=("${SMOKE_COMPOSE_ARGS[@]}")
+    (cd "$ROOT_DIR" && docker compose "${compose_args[@]}" down)
   fi
 
-  local nestjs_env="$ROOT_DIR/nestjs-anti-fraud/.env"
-  local nestjs_env_backup="$ROOT_DIR/nestjs-anti-fraud/.env.ci.bak"
-  if [[ -f "$nestjs_env_backup" ]]; then
+  if [[ -n "$SMOKE_NESTJS_ENV_BACKUP" && -f "$SMOKE_NESTJS_ENV_BACKUP" ]]; then
     log "Restoring nestjs-anti-fraud/.env from CI backup"
-    mv "$nestjs_env_backup" "$nestjs_env"
+    mv "$SMOKE_NESTJS_ENV_BACKUP" "$SMOKE_NESTJS_ENV"
+  fi
+
+  if [[ -n "$SMOKE_TMP_ENV" && -f "$SMOKE_TMP_ENV" ]]; then
+    rm -f "$SMOKE_TMP_ENV"
+  fi
+
+  if [[ -n "$SMOKE_TMP_OVERRIDE" && -f "$SMOKE_TMP_OVERRIDE" ]]; then
+    rm -f "$SMOKE_TMP_OVERRIDE"
   fi
 }
 

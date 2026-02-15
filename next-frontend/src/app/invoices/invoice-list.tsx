@@ -4,6 +4,7 @@ import { Plus, Eye, ChevronLeft, ChevronRight, Receipt, TrendingUp, Clock } from
 import Link from "next/link"
 import { StatusBadge } from "@/components/StatusBadge"
 import { InvoiceDownloadButton } from "@/components/invoice-download-button"
+import { PendingAutoRefresh } from "@/app/invoices/pending-auto-refresh"
 import { cookies } from "next/headers"
 import { getApiBaseUrl } from "@/lib/api"
 
@@ -39,7 +40,7 @@ function parsePositiveInt(value: string | undefined, fallback: number, max?: num
 
 export async function InvoiceList({ page, size }: InvoiceListProps) {
   const invoices = await getInvoices()
-  const pageSize = parsePositiveInt(size, 5, 50)
+  const pageSize = parsePositiveInt(size, 10, 50)
   const total = invoices.length
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const currentPage = Math.min(parsePositiveInt(page, 1), totalPages)
@@ -68,6 +69,8 @@ export async function InvoiceList({ page, size }: InvoiceListProps) {
 
   return (
     <div className="space-y-6 animate-fadeIn">
+      <PendingAutoRefresh enabled={pendingCount > 0} />
+
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

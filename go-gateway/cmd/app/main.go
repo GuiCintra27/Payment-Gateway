@@ -36,14 +36,8 @@ func getEnv(key, defaultValue string) string {
 }
 
 func main() {
-	// Carrega variaveis de ambiente locais quando existirem
-	if err := godotenv.Load(".env"); err != nil {
-		log.Print("missing .env, using defaults")
-	}
-	// .env.local deve ter prioridade sobre .env no desenvolvimento local.
-	if err := godotenv.Overload(".env.local"); err != nil {
-		log.Print("missing .env.local, using defaults")
-	}
+	log.SetPrefix("[go-gateway] ")
+	loadLocalEnv()
 
 	// Configura conexão com PostgreSQL usando variáveis de ambiente
 	connStr := fmt.Sprintf(
@@ -142,5 +136,35 @@ func main() {
 
 	if err := srv.Start(); err != nil {
 		log.Fatal("Error starting server: ", err)
+	}
+}
+
+func loadLocalEnv() {
+	fileEnvs := map[string]string{}
+
+	if fileValues, err := godotenv.Read(".env"); err == nil {
+		for key, value := range fileValues {
+			fileEnvs[key] = value
+		}
+	} else {
+		log.Print("missing .env, using defaults/environment values")
+	}
+
+	if fileValues, err := godotenv.Read(".env.local"); err == nil {
+		for key, value := range fileValues {
+			fileEnvs[key] = value
+		}
+	} else {
+		log.Print("missing .env.local, using defaults/environment values")
+	}
+
+	// Environment variables provided by the runtime always take precedence
+	// (important for Docker compose), while .env.local overrides .env.
+	for key, value := range fileEnvs {
+		if _, exists := os.LookupEnv(key); !exists {
+			if err := os.Setenv(key, value); err != nil {
+				log.Printf("failed to set env var %s: %v", key, err)
+			}
+		}
 	}
 }
