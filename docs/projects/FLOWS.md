@@ -19,9 +19,10 @@
 1. UI envia `POST /invoice` com `X-API-KEY` e dados do pagamento.
 2. Opcional: `Idempotency-Key` evita duplicidade para o mesmo payload.
 3. Gateway valida payload, converte `amount` para centavos e cria transferência.
-3. Se `amount <= 10000`:
-   - transferência aprovada/rejeitada localmente.
-4. Se `amount > 10000`:
+4. Se `amount <= 10000`:
+   - transferência aprovada/rejeitada localmente (sem antifraude async).
+   - criterio atual: decisao aleatoria no gateway (`~70% approved`, `~30% rejected`).
+5. Se `amount > 10000`:
    - transferência fica `pending`.
    - evento `pending_transactions` e gravado na outbox.
    - worker da outbox publica no Kafka.
@@ -29,9 +30,13 @@
 ## Análise antifraude
 
 1. Antifraude consome `pending_transactions`.
-2. Aplica regras de fraude (specifications).
-3. Persiste resultado no banco antifraude.
-4. Publica `transactions_result` no Kafka.
+2. Aplica regras de fraude (specifications), em ordem:
+   - `SUSPICIOUS_ACCOUNT`: rejeita se conta ja estiver marcada suspeita.
+   - `FREQUENT_HIGH_VALUE`: rejeita se volume de invoices recentes ultrapassar limite configurado.
+   - `UNUSUAL_PATTERN`: rejeita se valor atual estiver acima da variacao permitida sobre media historica.
+3. Se nenhuma regra disparar, aprova.
+4. Persiste resultado no banco antifraude.
+5. Publica `transactions_result` no Kafka.
 
 ## Atualizacao de status
 

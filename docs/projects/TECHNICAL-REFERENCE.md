@@ -52,6 +52,20 @@ Contratos de evento documentados em:
 - `go-gateway/docs/projects/KAFKA.md`
 - `nestjs-anti-fraud/docs/projects/EVENTS.md`
 
+## Criterios de decisao de transferencia
+
+- `amount <= 10000`:
+  - decisão local no gateway.
+  - regra atual: aleatorio (`~70% approved`, `~30% rejected`).
+  - nao publica `pending_transactions`.
+- `amount > 10000`:
+  - status inicial `pending`.
+  - publica `pending_transactions` (via outbox) para antifraude.
+  - antifraude decide `approved/rejected` por regras:
+    - `SUSPICIOUS_ACCOUNT`
+    - `FREQUENT_HIGH_VALUE`
+    - `UNUSUAL_PATTERN`
+
 ## Variáveis de ambiente por serviço
 
 ### Gateway (`go-gateway/.env.local`)
