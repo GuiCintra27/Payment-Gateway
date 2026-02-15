@@ -30,6 +30,19 @@ This starts:
 - Frontend (Next.js) on `:3000`
 - Kafka + Postgres infra via Docker
 
+### Start with observability in one command
+
+```bash
+ENABLE_OBSERVABILITY=true ./start-dev.sh
+```
+
+This also starts:
+- Prometheus on `:9090`
+- Metrics Grafana on `:3004` (`admin/admin`)
+- Loki on `:3100`
+- Logs Grafana on `:3005` (`admin/admin`)
+- Loki ingestion for local `start-dev` process logs (`job="startdev-local"`).
+
 ## Main URLs
 
 - Frontend: `http://localhost:3000`
@@ -46,6 +59,8 @@ This starts:
 ```
 
 ## Observability Stacks
+
+Manual alternative (without `ENABLE_OBSERVABILITY`):
 
 ```bash
 docker compose -f docker-compose.monitoring.yaml up -d

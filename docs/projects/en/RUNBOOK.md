@@ -13,6 +13,7 @@ Useful variables:
 - `SKIP_INFRA=true` (does not start Kafka/Postgres)
 - `FORCE_KILL_PORTS=true` (frees busy ports automatically)
 - `STOP_INFRA_ON_EXIT=true` (stops infra on exit)
+- `ENABLE_OBSERVABILITY=true` (starts Prometheus/Grafana/Loki/Promtail together with start-dev)
 - `ANTIFRAUD_WORKER_PORT=3101` (worker/metrics port)
 - `AUTO_PORTS=true` (automatically picks next free port)
 - `LOG_TO_FILE=true` (writes logs to files)
@@ -20,6 +21,11 @@ Useful variables:
 - `INFRA_START_TIMEOUT=60` (Kafka/Postgres timeout)
 - `SERVICE_START_TIMEOUT=25` (API/frontend startup timeout)
 - `KAFKA_REQUIRED=true` (fails if Kafka is unavailable while worker is active)
+
+Notes:
+- With `ENABLE_OBSERVABILITY=true`, the script forces `LOG_TO_FILE=true` so local process logs are ingested by Loki.
+- On Linux, start-dev monitoring uses a host-network override for reliable scrape of local services.
+- Observability teardown follows `STOP_INFRA_ON_EXIT`.
 
 ## Start Full Stack with Docker
 
@@ -104,6 +110,8 @@ docker compose -f docker-compose.infra.yaml down
 | Symptom | Common cause | Diagnosis | Action |
 |---|---|---|---|
 | `Port ... is busy` in `start-dev.sh` | Old process still using port | `lsof -iTCP:<port> -sTCP:LISTEN` | `FORCE_KILL_PORTS=true ./start-dev.sh` |
+| `localhost:3004/9090/3005/3100` connection refused | Observability not enabled in start-dev | `echo $ENABLE_OBSERVABILITY` and `docker compose -f docker-compose.monitoring.yaml ps` | Run `ENABLE_OBSERVABILITY=true ./start-dev.sh` or start observability stacks manually |
+| Empty dashboards in local mode | Observability enabled without traffic or dynamic port mismatch | Check `http://localhost:8080/metrics/prom`, `:3001/metrics/prom`, `:3101/metrics/prom` | Generate traffic and confirm `START_ANTIFRAUD_WORKER=true`; if using `AUTO_PORTS=true`, restart start-dev with observability |
 | `lookup gateway-db` / `lookup kafka` on local app | Local env uses container hostnames | `cat go-gateway/.env.local` and `cat nestjs-anti-fraud/.env.local` | Recreate `.env.local` from `.env.example` |
 | `EACCES` in `dist`, `.next`, `node_modules` | Permission inherited from container | `ls -ld <folder>` | Re-run `./start-dev.sh` (auto-fix) or adjust ownership manually |
 | Anti-fraud fails after migrate | DB not ready or migration pending | `docker compose -f docker-compose.infra.yaml ps` and process logs | Start infra again and rerun `./start-dev.sh` |

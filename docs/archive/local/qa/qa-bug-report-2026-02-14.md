@@ -81,3 +81,38 @@ Teste manual end-to-end realizado via navegador (MCP Chrome DevTools), cobrindo:
 - Paginacao da listagem (6 itens -> 2 paginas)
 - Detalhe da transacao com status, dados de pagamento e eventos
 - Modo demo com carga inicial de transacoes
+
+## Reteste de correcoes (rodada 2)
+
+Data: 2026-02-14 (noite)
+
+Resultado:
+
+- Correcao 1 (botao login com rotulo): **OK**
+- Correcao 2 (titulo home com espaco): **OK**
+- Correcao 3 (auto-refresh para pendentes): **OK**
+- Correcao 4 (evento demo pendente): **PARCIAL**
+
+Validacoes executadas:
+
+- Login invalido bloqueado com mensagem de erro e login valido funcionando.
+- Fluxo pending com worker pausado e retomado: lista atualizou sem refresh manual (`PENDENTE` -> `REJEITADO`).
+- Endpoint `GET /invoice/{id}/events`:
+  - com chave valida retorna eventos completos;
+  - com chave invalida retorna `401`;
+  - `request_id` propagado corretamente quando enviado (`X-Request-Id`).
+
+### Novo bug residual identificado
+
+5) Ordem de timeline inconsistente em invoice pendente do demo seed
+
+- Severidade: **Baixa**
+- Area: `go-gateway` seed demo + timeline de eventos
+- Reproducao:
+1. Criar conta demo via `POST /demo`
+2. Selecionar invoice pendente retornada no payload
+3. Buscar `GET /invoice/{id}/events`
+- Comportamento atual:
+  - `pending_published` pode aparecer com `created_at` anterior ao evento `created`, quebrando ordem cronologica esperada.
+- Comportamento esperado:
+  - timeline sempre ordenada com `created` antes de `pending_published`.

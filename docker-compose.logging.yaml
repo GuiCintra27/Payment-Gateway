@@ -21,7 +21,8 @@ services:
     volumes:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./monitoring/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - ${PROMTAIL_CONFIG_PATH:-./monitoring/promtail-config.yml}:/etc/promtail/promtail-config.yml:ro
+      - ${PROMTAIL_LOCAL_LOGS_PATH:-./.logs}:/var/log/payment-gateway/local:ro
     depends_on:
       - loki
     restart: unless-stopped

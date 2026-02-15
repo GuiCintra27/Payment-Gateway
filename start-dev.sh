@@ -20,6 +20,7 @@ START_ANTIFRAUD_WORKER="${START_ANTIFRAUD_WORKER:-true}"
 SKIP_INFRA="${SKIP_INFRA:-false}"
 FORCE_KILL_PORTS="${FORCE_KILL_PORTS:-false}"
 STOP_INFRA_ON_EXIT="${STOP_INFRA_ON_EXIT:-false}"
+ENABLE_OBSERVABILITY="${ENABLE_OBSERVABILITY:-false}"
 AUTO_PORTS="${AUTO_PORTS:-false}"
 LOG_TO_FILE="${LOG_TO_FILE:-false}"
 LOG_DIR="${LOG_DIR:-${ROOT_DIR}/.logs}"
@@ -31,11 +32,22 @@ KAFKA_REQUIRED="${KAFKA_REQUIRED:-${START_ANTIFRAUD_WORKER}}"
 COMPOSE_CMD=""
 INFRA_STARTED="false"
 INFRA_ALREADY_RUNNING="false"
+OBS_MONITORING_STARTED="false"
+OBS_MONITORING_ALREADY_RUNNING="false"
+OBS_LOGGING_STARTED="false"
+OBS_LOGGING_ALREADY_RUNNING="false"
+OBS_PROMETHEUS_CONFIG_TMP=""
+OBS_PROMTAIL_CONFIG_PATH=""
+OBS_LOCAL_LOGS_PATH=""
+OBS_PROMETHEUS_TARGET_HOST="host.docker.internal"
+OBS_MONITORING_HOST_MODE="false"
+OBS_GRAFANA_HTTP_PORT="3004"
 
 declare -a PROCESS_PIDS=()
 declare -a PROCESS_PGIDS=()
 declare -a PROCESS_NAMES=()
 declare -a PROCESS_LOGS=()
+declare -a OBS_MONITORING_COMPOSE_FILES=()
 declare -A RESERVED_PORTS=()
 
 log_info() {
@@ -318,6 +330,148 @@ wait_for_port() {
   done
 }
 
+ensure_docker_network() {
+  local network_name="$1"
+  if docker network inspect "${network_name}" >/dev/null 2>&1; then
+    return 0
+  fi
+  log_warn "Docker network ${network_name} not found. Creating it for observability stack..."
+  docker network create "${network_name}" >/dev/null
+}
+
+write_prometheus_startdev_config() {
+  local config_path="$1"
+  cat >"${config_path}" <<EOF
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: gateway
+    metrics_path: /metrics/prom
+    static_configs:
+      - targets: ["${OBS_PROMETHEUS_TARGET_HOST}:${GATEWAY_PORT}"]
+
+  - job_name: antifraud
+    metrics_path: /metrics/prom
+    static_configs:
+      - targets: ["${OBS_PROMETHEUS_TARGET_HOST}:${ANTIFRAUD_PORT}"]
+EOF
+
+  if [ "${START_ANTIFRAUD_WORKER}" = "true" ]; then
+    cat >>"${config_path}" <<EOF
+
+  - job_name: antifraud_worker
+    metrics_path: /metrics/prom
+    static_configs:
+      - targets: ["${OBS_PROMETHEUS_TARGET_HOST}:${ANTIFRAUD_WORKER_PORT}"]
+EOF
+  fi
+}
+
+setup_observability_monitoring_mode() {
+  OBS_MONITORING_COMPOSE_FILES=("-f" "${ROOT_DIR}/docker-compose.monitoring.yaml")
+  OBS_MONITORING_HOST_MODE="false"
+  OBS_PROMETHEUS_TARGET_HOST="host.docker.internal"
+
+  local os_name
+  os_name="$(uname -s 2>/dev/null || echo unknown)"
+  if [ "${os_name}" = "Linux" ]; then
+    OBS_MONITORING_HOST_MODE="true"
+    OBS_PROMETHEUS_TARGET_HOST="127.0.0.1"
+    OBS_MONITORING_COMPOSE_FILES=("-f" "${ROOT_DIR}/docker-compose.monitoring.startdev.yaml")
+    log_warn "Linux detected. Using host-network monitoring override to ensure Prometheus scrape of local services."
+  fi
+}
+
+start_observability_stack() {
+  if [ "${ENABLE_OBSERVABILITY}" != "true" ]; then
+    return 0
+  fi
+
+  if [ "${LOG_TO_FILE}" != "true" ]; then
+    log_warn "ENABLE_OBSERVABILITY=true detected. Forcing LOG_TO_FILE=true to ingest local process logs in Loki."
+    LOG_TO_FILE="true"
+  fi
+
+  mkdir -p "${LOG_DIR}"
+  ensure_writable_path "${LOG_DIR}" "local logs directory"
+
+  setup_observability_monitoring_mode
+
+  OBS_PROMETHEUS_CONFIG_TMP="$(mktemp -t payment-gateway-prometheus.startdev.XXXXXX.yml)"
+  write_prometheus_startdev_config "${OBS_PROMETHEUS_CONFIG_TMP}"
+  chmod 644 "${OBS_PROMETHEUS_CONFIG_TMP}"
+
+  OBS_PROMTAIL_CONFIG_PATH="${ROOT_DIR}/monitoring/promtail.local-config.yml"
+  OBS_LOCAL_LOGS_PATH="${LOG_DIR}"
+
+  if [ "${OBS_MONITORING_HOST_MODE}" != "true" ]; then
+    ensure_docker_network "payment-gateway_default"
+  fi
+
+  if ${COMPOSE_CMD} "${OBS_MONITORING_COMPOSE_FILES[@]}" ps 2>/dev/null | grep -E "(prometheus|grafana)" | grep -E "Up|running" >/dev/null; then
+    OBS_MONITORING_ALREADY_RUNNING="true"
+    log_warn "Monitoring stack already running. Reusing existing services."
+  fi
+
+  local prometheus_url="http://prometheus:9090"
+  local grafana_http_port="3000"
+  if [ "${OBS_MONITORING_HOST_MODE}" = "true" ]; then
+    prometheus_url="http://127.0.0.1:9090"
+    grafana_http_port="${OBS_GRAFANA_HTTP_PORT}"
+  fi
+
+  log_info "Starting observability monitoring stack (Prometheus + Grafana)..."
+  if ! env PROMETHEUS_CONFIG_PATH="${OBS_PROMETHEUS_CONFIG_TMP}" PROMETHEUS_URL="${prometheus_url}" GRAFANA_HTTP_PORT="${grafana_http_port}" ${COMPOSE_CMD} "${OBS_MONITORING_COMPOSE_FILES[@]}" up -d; then
+    die "Failed to start monitoring stack."
+  fi
+  if [ "${OBS_MONITORING_ALREADY_RUNNING}" = "false" ]; then
+    OBS_MONITORING_STARTED="true"
+  fi
+
+  if ${COMPOSE_CMD} -f "${ROOT_DIR}/docker-compose.logging.yaml" ps 2>/dev/null | grep -E "(loki|promtail|grafana-logs)" | grep -E "Up|running" >/dev/null; then
+    OBS_LOGGING_ALREADY_RUNNING="true"
+    log_warn "Logging stack already running. Reusing existing services."
+  fi
+
+  log_info "Starting observability logging stack (Loki + Promtail + Grafana)..."
+  if ! env PROMTAIL_CONFIG_PATH="${OBS_PROMTAIL_CONFIG_PATH}" PROMTAIL_LOCAL_LOGS_PATH="${OBS_LOCAL_LOGS_PATH}" ${COMPOSE_CMD} -f "${ROOT_DIR}/docker-compose.logging.yaml" up -d; then
+    die "Failed to start logging stack."
+  fi
+  if [ "${OBS_LOGGING_ALREADY_RUNNING}" = "false" ]; then
+    OBS_LOGGING_STARTED="true"
+  fi
+
+  wait_for_port 127.0.0.1 9090 "Prometheus" "${INFRA_START_TIMEOUT}" || die "Prometheus did not become ready."
+  wait_for_port 127.0.0.1 3004 "Grafana (monitoring)" "${INFRA_START_TIMEOUT}" || die "Grafana (monitoring) did not become ready."
+  wait_for_port 127.0.0.1 3100 "Loki" "${INFRA_START_TIMEOUT}" || die "Loki did not become ready."
+  wait_for_port 127.0.0.1 3005 "Grafana (logs)" "${INFRA_START_TIMEOUT}" || die "Grafana (logs) did not become ready."
+}
+
+stop_observability_stack() {
+  if [ "${ENABLE_OBSERVABILITY}" != "true" ] || [ -z "${COMPOSE_CMD}" ]; then
+    return 0
+  fi
+
+  local should_stop="${1:-false}"
+  if [ "${should_stop}" != "true" ]; then
+    return 0
+  fi
+
+  if [ "${OBS_MONITORING_STARTED}" = "true" ]; then
+    log_warn "Stopping observability monitoring stack..."
+    if [ "${#OBS_MONITORING_COMPOSE_FILES[@]}" -eq 0 ]; then
+      OBS_MONITORING_COMPOSE_FILES=("-f" "${ROOT_DIR}/docker-compose.monitoring.yaml")
+    fi
+    ${COMPOSE_CMD} "${OBS_MONITORING_COMPOSE_FILES[@]}" down || true
+  fi
+  if [ "${OBS_LOGGING_STARTED}" = "true" ]; then
+    log_warn "Stopping observability logging stack..."
+    ${COMPOSE_CMD} -f "${ROOT_DIR}/docker-compose.logging.yaml" down || true
+  fi
+}
+
 start_process() {
   local name="$1"
   local cmd="$2"
@@ -386,6 +540,7 @@ stop_process() {
 
 cleanup() {
   local exit_code=$?
+  local observability_stopped="false"
 
   for i in "${!PROCESS_PIDS[@]}"; do
     stop_process "${PROCESS_NAMES[$i]}" "${PROCESS_PIDS[$i]}" "${PROCESS_PGIDS[$i]}"
@@ -413,9 +568,22 @@ cleanup() {
     ${COMPOSE_CMD} -f "${ROOT_DIR}/docker-compose.infra.yaml" down || true
   fi
 
+  if [ "${exit_code}" -ne 0 ]; then
+    stop_observability_stack "true"
+    observability_stopped="true"
+  fi
+
   if [ "${STOP_INFRA_ON_EXIT}" = "true" ] && [ "${INFRA_STARTED}" = "true" ] && [ -n "${COMPOSE_CMD}" ]; then
     log_warn "Stopping infra containers..."
     ${COMPOSE_CMD} -f "${ROOT_DIR}/docker-compose.infra.yaml" down || true
+  fi
+
+  if [ "${STOP_INFRA_ON_EXIT}" = "true" ] && [ "${observability_stopped}" = "false" ]; then
+    stop_observability_stack "true"
+  fi
+
+  if [ -n "${OBS_PROMETHEUS_CONFIG_TMP}" ] && [ -f "${OBS_PROMETHEUS_CONFIG_TMP}" ]; then
+    rm -f "${OBS_PROMETHEUS_CONFIG_TMP}"
   fi
 
   exit "${exit_code}"
@@ -473,6 +641,24 @@ else
   log_warn "SKIP_INFRA=true set, skipping infra startup."
 fi
 
+if [ "${START_ANTIFRAUD_WORKER}" = "true" ]; then
+  KAFKA_BROKER="${KAFKA_BROKER:-$(read_env_var "${ROOT_DIR}/nestjs-anti-fraud/.env.local" "KAFKA_BROKER")}"
+  KAFKA_BROKER="${KAFKA_BROKER:-localhost:9092}"
+  KAFKA_HOST="${KAFKA_BROKER%:*}"
+  KAFKA_PORT="${KAFKA_BROKER##*:}"
+
+  if ! wait_for_port "${KAFKA_HOST}" "${KAFKA_PORT}" "Kafka broker" "${INFRA_START_TIMEOUT}"; then
+    if [ "${KAFKA_REQUIRED}" = "true" ]; then
+      die "Kafka broker not reachable at ${KAFKA_BROKER}. Fix it or set START_ANTIFRAUD_WORKER=false."
+    else
+      log_warn "Kafka broker not reachable at ${KAFKA_BROKER}. Skipping worker (KAFKA_REQUIRED=false)."
+      START_ANTIFRAUD_WORKER="false"
+    fi
+  fi
+fi
+
+start_observability_stack
+
 log_info "Starting API Gateway (Go)..."
 revalidate_port_before_start GATEWAY_PORT "API Gateway" "gateway"
 GATEWAY_ENV_FILE=""
@@ -500,22 +686,6 @@ echo -e "${GREEN}[OK]${NC} Antifraud running at http://localhost:${ANTIFRAUD_POR
 
 if [ "${START_ANTIFRAUD_WORKER}" = "true" ]; then
   log_info "Starting Anti-fraud worker (Kafka)..."
-  KAFKA_BROKER="${KAFKA_BROKER:-$(read_env_var "${ROOT_DIR}/nestjs-anti-fraud/.env.local" "KAFKA_BROKER")}"
-  KAFKA_BROKER="${KAFKA_BROKER:-localhost:9092}"
-  KAFKA_HOST="${KAFKA_BROKER%:*}"
-  KAFKA_PORT="${KAFKA_BROKER##*:}"
-
-  if ! wait_for_port "${KAFKA_HOST}" "${KAFKA_PORT}" "Kafka broker" "${INFRA_START_TIMEOUT}"; then
-    if [ "${KAFKA_REQUIRED}" = "true" ]; then
-      die "Kafka broker not reachable at ${KAFKA_BROKER}. Fix it or set START_ANTIFRAUD_WORKER=false."
-    else
-      log_warn "Kafka broker not reachable at ${KAFKA_BROKER}. Skipping worker (KAFKA_REQUIRED=false)."
-      START_ANTIFRAUD_WORKER="false"
-    fi
-  fi
-fi
-
-if [ "${START_ANTIFRAUD_WORKER}" = "true" ]; then
   revalidate_port_before_start ANTIFRAUD_WORKER_PORT "Anti-fraud worker" "antifraud-worker"
   start_process "antifraud-worker" "cd \"${ROOT_DIR}/nestjs-anti-fraud\" && if [ ! -d \"node_modules\" ]; then echo '[INFO] Installing antifraud dependencies...'; npm install; fi && if [ -f \".env.local\" ]; then set -a; . ./.env.local; set +a; fi && ANTIFRAUD_WORKER_PORT=\"${ANTIFRAUD_WORKER_PORT}\" npm run start:kafka:dev"
   wait_for_port 127.0.0.1 "${ANTIFRAUD_WORKER_PORT}" "Anti-fraud worker metrics" "${SERVICE_START_TIMEOUT}" || exit 1
@@ -551,6 +721,12 @@ echo -e "Anti-fraud metrics: ${BLUE}http://localhost:${ANTIFRAUD_PORT}/metrics${
 if [ "${START_ANTIFRAUD_WORKER}" = "true" ]; then
   echo -e "Anti-fraud worker:  ${BLUE}running (Kafka consumer)${NC}"
   echo -e "Worker metrics:     ${BLUE}http://localhost:${ANTIFRAUD_WORKER_PORT}/metrics${NC}"
+fi
+if [ "${ENABLE_OBSERVABILITY}" = "true" ]; then
+  echo -e "Prometheus:         ${BLUE}http://localhost:9090${NC}"
+  echo -e "Grafana metrics:    ${BLUE}http://localhost:3004${NC}"
+  echo -e "Loki health:        ${BLUE}http://localhost:3100/ready${NC}"
+  echo -e "Grafana logs:       ${BLUE}http://localhost:3005${NC}"
 fi
 echo ""
 echo -e "${YELLOW}Hot-reload is enabled.${NC}"

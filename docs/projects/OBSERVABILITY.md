@@ -2,6 +2,26 @@
 
 [**PT-BR**](./OBSERVABILITY.md) | [EN](./en/OBSERVABILITY.md)
 
+## Modos de execução
+
+### 1) Docker full stack
+
+```bash
+docker compose up -d --build
+docker compose -f docker-compose.monitoring.yaml up -d
+docker compose -f docker-compose.logging.yaml up -d
+```
+
+### 2) Start-dev local com observabilidade
+
+```bash
+ENABLE_OBSERVABILITY=true ./start-dev.sh
+```
+
+Nesse modo:
+- Prometheus faz scrape dos serviços locais com config dinâmica (Linux usa host-network com `127.0.0.1`; outros ambientes usam `host.docker.internal`).
+- Promtail coleta logs de containers e também logs locais gerados em `LOG_DIR` (`.logs` por padrão).
+
 ## Gateway (Go)
 
 Endpoint:
@@ -22,6 +42,7 @@ Logs:
 - `slog` com `request_id`, status, duracao e bytes.
 - `X-Request-Id` pode ser enviado pelo cliente.
 - `X-Request-Id` e propagado para o Kafka via header `x-request-id`.
+
 ## Logs persistidos (Loki + Promtail)
 
 Para ambiente local/produção-like, a stack de logs usa Loki + Promtail + Grafana.
@@ -34,15 +55,17 @@ docker compose -f docker-compose.logging.yaml up -d
 
 Grafana (logs): `http://localhost:3005` (admin/admin)
 
-Consulta sugerida:
+Consultas sugeridas:
 
 ```
-{service=\"go-gateway\"} |= \"request_id=\"
+{job="startdev-local"} |= "request_id="
+{job="startdev-local", service="gateway"}
+{job="docker"} |= "go-gateway"
 ```
 
 Campos padronizados esperados:
 
-- `service`
+- `service` (job `startdev-local`)
 - `level`
 - `request_id`
 - `event_id` (quando houver)

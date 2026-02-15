@@ -31,6 +31,12 @@ cp next-frontend/.env.example next-frontend/.env.local
 ./start-dev.sh
 ```
 
+Opcional (subir observabilidade no mesmo comando):
+
+```bash
+ENABLE_OBSERVABILITY=true ./start-dev.sh
+```
+
 URLs principais:
 - Frontend: `http://localhost:3000`
 - Gateway API: `http://localhost:8080`

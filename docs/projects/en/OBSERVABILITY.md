@@ -2,6 +2,26 @@
 
 [PT-BR](../OBSERVABILITY.md) | **EN**
 
+## Execution Modes
+
+### 1) Docker full stack
+
+```bash
+docker compose up -d --build
+docker compose -f docker-compose.monitoring.yaml up -d
+docker compose -f docker-compose.logging.yaml up -d
+```
+
+### 2) Local start-dev with observability
+
+```bash
+ENABLE_OBSERVABILITY=true ./start-dev.sh
+```
+
+In this mode:
+- Prometheus scrapes local services with dynamic config (Linux uses host network with `127.0.0.1`; other environments use `host.docker.internal`).
+- Promtail ingests both container logs and local process logs written to `LOG_DIR` (`.logs` by default).
+
 ## Gateway (Go)
 
 Endpoints:
@@ -35,15 +55,17 @@ docker compose -f docker-compose.logging.yaml up -d
 
 Logs Grafana: `http://localhost:3005` (admin/admin)
 
-Suggested query:
+Suggested queries:
 
 ```
-{service=\"go-gateway\"} |= \"request_id=\"
+{job="startdev-local"} |= "request_id="
+{job="startdev-local", service="gateway"}
+{job="docker"} |= "go-gateway"
 ```
 
 Expected standard fields:
 
-- `service`
+- `service` (for `startdev-local` job)
 - `level`
 - `request_id`
 - `event_id` (when present)
