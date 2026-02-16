@@ -19,12 +19,12 @@
 1. Worker Kafka recebe mensagem via `@EventPattern`.
 2. Se `event_id` estiver ausente, registra falha e ignora.
 3. Chama `FraudService.processInvoice`.
-4. Atualiza metricas de sucesso/falha.
-5. Em caso de erro, a excecao e propagada para o runtime.
+4. Atualiza métricas de sucesso/falha.
+5. Em caso de erro, a exceção é propagada para o runtime.
 
 ## Resultado
 
-O resultado da análise e publicado em `transactions_result` via listener do evento `invoice.processed`.
+O resultado da análise é publicado em `transactions_result` via listener do evento `invoice.processed`.
 
 ## Metrics
 

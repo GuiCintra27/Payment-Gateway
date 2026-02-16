@@ -4,25 +4,30 @@
 
 ## Docker Compose
 
-O repositorio possui dois arquivos principais:
+O repositório possui quatro arquivos principais de compose:
 
 - `docker-compose.yaml`: sobe toda a stack (frontend + gateway + antifraude + kafka + postgres).
 - `docker-compose.infra.yaml`: sobe apenas a infra (kafka + postgres + migrations).
 - `docker-compose.monitoring.yaml`: sobe Prometheus + Grafana (dashboard).
 - `docker-compose.logging.yaml`: sobe Loki + Promtail + Grafana (logs).
 
+Arquivo auxiliar:
+- `docker-compose.monitoring.startdev.yaml`: override usado pelo `start-dev.sh` em Linux para scrape local via host network.
+
 ### Serviços (docker-compose.yaml)
 
 - `gateway-db` (Postgres)
 - `nestjs-db` (Postgres)
 - `kafka` (redpanda)
-- `kafka-init` (cria topicos)
+- `kafka-init` (cria tópicos)
 - `go-migrate` (aplica migrations do gateway)
 - `nestjs-migrate` (aplica migrations do antifraude)
 - `go-gateway`
 - `nestjs` (API antifraude)
 - `nestjs-worker`
-- `next-frontend`
+- `frontend`
+- `nestjs-permissions-init`
+- `frontend-permissions-init`
 
 ### Serviços (docker-compose.infra.yaml)
 
@@ -46,12 +51,15 @@ O repositorio possui dois arquivos principais:
 ## Volumes
 
 - `gateway_postgres_data`
+- `nestjs_postgres_data`
 - `nestjs_node_modules`
 - `next_node_modules`
+- `loki_data`
 
 ## Redes
 
-Todos os serviços compartilham a rede default do compose (`payment-gateway_default`).
+- Stack principal e monitoring usam `payment-gateway_default`.
+- Stack de logging usa rede dedicada `logging`.
 
 ## Portas
 

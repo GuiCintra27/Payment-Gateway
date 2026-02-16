@@ -1,4 +1,4 @@
-# Metricas
+# Métricas
 
 [**PT-BR**](./METRICS.md) | [EN](./en/METRICS.md)
 

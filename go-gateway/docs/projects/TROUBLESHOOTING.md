@@ -1,4 +1,4 @@
-# Resolucao de problemas
+# Resolução de problemas
 
 [**PT-BR**](./TROUBLESHOOTING.md) | [EN](./en/TROUBLESHOOTING.md)
 
@@ -10,14 +10,14 @@
 ## Banco não conecta
 
 - Verifique `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`.
-- Confirme se `gateway-db` esta ativo no Docker.
+- Confirme se `gateway-db` está ativo no Docker.
 
-## Kafka indisponivel
+## Kafka indisponível
 
-- Verifique `KAFKA_BROKER` e se `kafka` esta ativo.
+- Verifique `KAFKA_BROKER` e se `kafka` está ativo.
 - Logs: `docker compose -f docker-compose.infra.yaml logs kafka`.
 
 ## DLQ crescendo
 
 - Verifique schema do payload em `transactions_result`.
-- Confirme se `event_id` esta presente.
+- Confirme se `event_id` está presente.

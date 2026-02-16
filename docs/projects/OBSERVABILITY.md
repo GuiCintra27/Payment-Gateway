@@ -29,7 +29,7 @@ Endpoint:
 - `GET /metrics` (expvar JSON)
 - `GET /metrics/prom` (Prometheus)
 
-Principais metricas:
+Principais métricas:
 
 - `http_requests_total` (por metodo + path)
 - `http_requests_errors_total`
@@ -39,7 +39,7 @@ Principais metricas:
 
 Logs:
 
-- `slog` com `request_id`, status, duracao e bytes.
+- `slog` com `request_id`, status, duração e bytes.
 - `X-Request-Id` pode ser enviado pelo cliente.
 - `X-Request-Id` e propagado para o Kafka via header `x-request-id`.
 

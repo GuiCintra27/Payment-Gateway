@@ -15,7 +15,7 @@
 }
 ```
 
-## Saida (transactions_result)
+## Saída (transactions_result)
 
 ```json
 {
@@ -26,8 +26,8 @@
 }
 ```
 
-## Regras de publicacao
+## Regras de publicação
 
 - O evento `invoice.processed` dispara o publish para o Kafka.
-- O status e `approved` quando não ha fraude, `rejected` quando ha fraude.
-- O header `x-request-id` e propagado quando presente.
+- O status é `approved` quando não há fraude, `rejected` quando há fraude.
+- O header `x-request-id` é propagado quando presente.

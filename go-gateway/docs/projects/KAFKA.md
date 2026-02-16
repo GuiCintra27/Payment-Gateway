@@ -16,9 +16,9 @@ Variáveis principais:
 ## Producer
 
 Publica `pending_transactions` quando a transferência fica `pending`.
-O publish e feito via outbox (tabela + worker) para evitar perda de eventos.
+O publish é feito via outbox (tabela + worker) para evitar perda de eventos.
 
-Payload inclui `schema_version` e `amount_cents` (mantem `amount` por compatibilidade).
+Payload inclui `schema_version` e `amount_cents` (mantém `amount` por compatibilidade).
 
 ## Consumer
 
@@ -30,7 +30,7 @@ Headers:
 
 - `x-request-id` propagado quando presente.
 
-- Deduplicacao por `event_id` em `processed_events`.
+- Deduplicação por `event_id` em `processed_events`.
 - Retry com backoff exponencial.
 - DLQ para falhas de parsing, dedup ou processamento.
 
@@ -40,7 +40,7 @@ Headers:
 
 ### Replay controlado
 
-Para reprocessar mensagens da DLQ de forma auditavel:
+Para reprocessar mensagens da DLQ de forma auditável:
 
 ```bash
 go run cmd/dlq-replay/main.go --dry-run --max 10

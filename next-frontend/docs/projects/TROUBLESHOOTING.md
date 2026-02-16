@@ -1,4 +1,4 @@
-# Resolucao de problemas
+# Resolução de problemas
 
 [**PT-BR**](./TROUBLESHOOTING.md) | [EN](./en/TROUBLESHOOTING.md)
 
@@ -12,7 +12,7 @@
 - Cookie `apiKey` ausente ou expirado.
 - Faca login novamente ou entre em modo demo.
 
-## Erros de hidratacao
+## Erros de hidratação
 
 - Limpe cache do navegador.
 - Verifique se extensoes não estão modificando o HTML.

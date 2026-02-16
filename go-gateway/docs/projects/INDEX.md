@@ -1,10 +1,10 @@
-# Indice de docs do Go Gateway
+# Índice de docs do Go Gateway
 
 [**PT-BR**](./INDEX.md) | [EN](./en/INDEX.md)
 
 - [API](./API.md)
-- [Dominio](./DOMAIN.md)
+- [Domínio](./DOMAIN.md)
 - [Banco de dados](./DATABASE.md)
 - [Kafka](./KAFKA.md)
 - [Erros](./ERRORS.md)
-- [Resolucao de problemas](./TROUBLESHOOTING.md)
+- [Resolução de problemas](./TROUBLESHOOTING.md)

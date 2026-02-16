@@ -2,11 +2,11 @@
 
 [**PT-BR**](./README.md) | [EN](./docs/projects/en/INDEX.md)
 
-Interface web para onboarding, login por API key, gerenciamento de transferências e visualizacao de timeline.
+Interface web para onboarding, login por API key, gerenciamento de transferências e visualização de timeline.
 
 ## Como rodar
 
-Na raiz do repositorio:
+Na raiz do repositório:
 
 ```bash
 ./start-dev.sh
@@ -32,6 +32,6 @@ npm run dev
 
 ## Documentação
 
-- Indice do serviço: `next-frontend/docs/projects/INDEX.md`
+- Índice do serviço: `next-frontend/docs/projects/INDEX.md`
 - Service docs (EN): `next-frontend/docs/projects/en/INDEX.md`
-- Indice do projeto: `docs/projects/INDEX.md`
+- Índice do projeto: `docs/projects/INDEX.md`

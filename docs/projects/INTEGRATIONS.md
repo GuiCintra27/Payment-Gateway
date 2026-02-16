@@ -6,7 +6,7 @@
 
 Autenticação sempre via header `X-API-KEY` (exceto `POST /accounts` e `POST /demo`).
 
-Idempotencia opcional via header `Idempotency-Key` no `POST /invoice`.
+Idempotência opcional via header `Idempotency-Key` no `POST /invoice`.
 
 Principais endpoints:
 
@@ -38,7 +38,7 @@ Headers:
 
 ### Topic: `pending_transactions`
 
-Publicado pelo gateway quando uma transferência e classificada como `pending` (valor alto).
+Publicado pelo gateway quando uma transferência é classificada como `pending` (valor alto).
 
 Payload:
 
@@ -56,7 +56,7 @@ Payload:
 
 ### Topic: `transactions_result`
 
-Publicado pelo antifraude apos processar a transferência.
+Publicado pelo antifraude após processar a transferência.
 
 Payload:
 
@@ -71,7 +71,7 @@ Payload:
 
 ### Topic: `transactions_result_dlq`
 
-Publicado pelo gateway quando o processamento falha ou o payload e invalido.
+Publicado pelo gateway quando o processamento falha ou o payload é inválido.
 
 Payload:
 

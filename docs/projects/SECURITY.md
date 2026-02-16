@@ -31,7 +31,7 @@
 - O gateway não persiste número completo do cartão nem CVV.
 - Apenas os últimos 4 digitos são armazenados em `card_last_digits`.
 
-## Recomendacoes
+## Recomendações
 
 - Gere segredos fortes e mantenha `API_KEY_ACTIVE_KEY_ID` sincronizado.
 - Mantenha `.env` fora do controle de versão.

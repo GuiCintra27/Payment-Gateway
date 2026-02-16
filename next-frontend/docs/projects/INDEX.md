@@ -1,4 +1,4 @@
-# Indice de docs do Frontend
+# Índice de docs do Frontend
 
 [**PT-BR**](./INDEX.md) | [EN](./en/INDEX.md)
 

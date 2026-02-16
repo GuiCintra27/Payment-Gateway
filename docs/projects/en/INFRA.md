@@ -4,12 +4,15 @@
 
 ## Docker Compose
 
-The repository includes four main files:
+The repository includes four main compose files:
 
 - `docker-compose.yaml`: full stack (frontend + gateway + anti-fraud + kafka + postgres).
 - `docker-compose.infra.yaml`: infra only (kafka + postgres + migrations).
 - `docker-compose.monitoring.yaml`: Prometheus + Grafana (dashboards).
 - `docker-compose.logging.yaml`: Loki + Promtail + Grafana (logs).
+
+Helper file:
+- `docker-compose.monitoring.startdev.yaml`: override used by `start-dev.sh` on Linux for host-network local scrape.
 
 ### Services (`docker-compose.yaml`)
 
@@ -22,7 +25,9 @@ The repository includes four main files:
 - `go-gateway`
 - `nestjs` (anti-fraud API)
 - `nestjs-worker`
-- `next-frontend`
+- `frontend`
+- `nestjs-permissions-init`
+- `frontend-permissions-init`
 
 ### Services (`docker-compose.infra.yaml`)
 
@@ -46,12 +51,15 @@ The repository includes four main files:
 ## Volumes
 
 - `gateway_postgres_data`
+- `nestjs_postgres_data`
 - `nestjs_node_modules`
 - `next_node_modules`
+- `loki_data`
 
 ## Networks
 
-All services share the default compose network (`payment-gateway_default`).
+- Main stack and monitoring use `payment-gateway_default`.
+- Logging stack uses a dedicated `logging` network.
 
 ## Ports
 

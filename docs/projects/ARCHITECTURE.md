@@ -14,9 +14,9 @@ flowchart LR
   KAFKA -->|pending_transactions| AF
 ```
 
-## Visão geral
+## Visão Geral
 
-O sistema e dividido em três serviços principais e dois bancos de dados separados:
+O sistema é dividido em três serviços principais e dois bancos de dados separados:
 
 - `next-frontend` (UI e fluxo do usuário)
 - `go-gateway` (API de contas e transferências)
@@ -50,8 +50,8 @@ Fluxo macro (síncrono + assíncrono):
 
 - CRUD mínimo de contas e transferências
 - Regra de status:
-  - valores > 10000 ficam `pending` e vao para antifraude
-  - valores menores tem aprovação/rejeição imediata
+  - valores > 10000 ficam `pending` e vão para antifraude
+  - valores menores têm aprovação/rejeição imediata
 - Publica eventos de transações pendentes no Kafka
 - Consome resultados do antifraude e atualiza transferências
 - Rate limit por API key
@@ -65,19 +65,19 @@ Fluxo macro (síncrono + assíncrono):
 - Persiste resultado em banco próprio
 - Publica o resultado no Kafka
 
-## Confiabilidade e resiliencia
+## Confiabilidade e Resiliência
 
 - Gateway salva eventos pendentes via outbox (`outbox_events`) e publica assíncrono.
-- Gateway faz deduplicacao por `event_id` (tabela `processed_events`) antes de aplicar resultado.
+- Gateway faz deduplicação por `event_id` (tabela `processed_events`) antes de aplicar resultado.
 - Antifraude usa inbox (`processed_events`) para dedup de mensagens consumidas do Kafka.
-- Consumer do Gateway faz retry com backoff e envia para DLQ apos N tentativas.
+- Consumer do Gateway faz retry com backoff e envia para DLQ após N tentativas.
 - DLQ topic: `transactions_result_dlq` com replay auditado (`dlq_replay_audits`).
 - Eventos de auditoria em `invoice_events` para timeline no frontend.
-- Logs estruturados no gateway com `request_id` e propagacao no Kafka (`x-request-id`).
+- Logs estruturados no gateway com `request_id` e propagação no Kafka (`x-request-id`).
 - Health endpoints para readiness e liveness.
 
 ## Ownership de dados
 
-- Gateway e a fonte de verdade para contas e transferências exibidas na UI.
-- Antifraude mantem seu próprio histórico (não replica dados do gateway).
+- Gateway é a fonte de verdade para contas e transferências exibidas na UI.
+- Antifraude mantém seu próprio histórico (não replica dados do gateway).
 - A integração entre serviços acontece apenas via Kafka.

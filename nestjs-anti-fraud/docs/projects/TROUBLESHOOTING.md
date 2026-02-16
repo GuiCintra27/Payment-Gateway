@@ -1,4 +1,4 @@
-# Resolucao de problemas
+# Resolução de problemas
 
 [**PT-BR**](./TROUBLESHOOTING.md) | [EN](./en/TROUBLESHOOTING.md)
 

@@ -7,7 +7,7 @@ Projeto de gateway de pagamentos orientado a eventos, criado para demonstrar fun
 ## Visão geral
 
 O projeto simula um fluxo de pagamento com caminhos síncrono e assíncrono:
-- `go-gateway`: API de contas e transferências, idempotencia, outbox e replay de DLQ.
+- `go-gateway`: API de contas e transferências, idempotência, outbox e replay de DLQ.
 - `nestjs-anti-fraud`: análise antifraude (API + worker Kafka).
 - `next-frontend`: onboarding, login, criação de transferência, timeline e download de PDF.
 - stacks de Kafka + Postgres + observabilidade/logs.
@@ -21,7 +21,7 @@ O projeto simula um fluxo de pagamento com caminhos síncrono e assíncrono:
 - Postgres
 - Prometheus/Grafana + Loki/Promtail
 
-## Início rapido
+## Início rápido
 
 ```bash
 cp go-gateway/.env.example go-gateway/.env.local
@@ -42,16 +42,16 @@ URLs principais:
 - Gateway API: `http://localhost:8080`
 - Swagger: `http://localhost:8080/swagger/index.html`
 
-Guias completos de inicializacao e troubleshooting:
+Guias completos de inicialização e troubleshooting:
 - `docs/projects/QUICK-START.md`
 - `docs/projects/RUNBOOK.md` (guia operacional)
 
 ## O que este projeto demonstra
 
 - Fluxo orientado a eventos com `pending_transactions` e `transactions_result`.
-- Padroes de confiabilidade: idempotencia, outbox, deduplicacao, retry/backoff e DLQ + replay.
-- Base de segurança: rotacao de HMAC da API key, rate limit, cookies `secure` em produção e hardening de CORS.
-- Observabilidade: metricas de API/worker, dashboards, logs estruturados e persistencia centralizada de logs.
+- Padrões de confiabilidade: idempotência, outbox, deduplicação, retry/backoff e DLQ + replay.
+- Base de segurança: rotação de HMAC da API key, rate limit, cookies `secure` em produção e hardening de CORS.
+- Observabilidade: métricas de API/worker, dashboards, logs estruturados e persistência centralizada de logs.
 
 ## Demo (5-7 min)
 
@@ -85,7 +85,7 @@ Documentação por serviço:
 - Fluxo E2E: `./scripts/e2e.sh`
 - Releases automatizadas: `release-please` (`.github/workflows/release-please.yml`)
 
-## Troubleshooting rapido
+## Troubleshooting rápido
 
 - Portas ocupadas: `FORCE_KILL_PORTS=true ./start-dev.sh`
 - Sobras de Docker: `docker compose down --remove-orphans`

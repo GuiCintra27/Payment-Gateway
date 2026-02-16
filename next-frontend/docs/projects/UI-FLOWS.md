@@ -5,7 +5,7 @@
 ## Home (`/`)
 
 - Formulario para criar conta (nome + email).
-- Botao para entrar no modo demo.
+- Botão para entrar no modo demo.
 - Link para login com API key existente.
 
 ## Login (`/login`)
@@ -16,7 +16,7 @@
 ## Welcome (`/welcome`)
 
 - Exibe a API key apenas uma vez.
-- Botao para copiar e seguir para a lista.
+- Botão para copiar e seguir para a lista.
 
 ## Lista de transferências (`/invoices`)
 

@@ -1,13 +1,13 @@
-# Indice de Documentação
+# Índice de Documentação
 
 [**PT-BR**](./INDEX.md) | [EN](./en/INDEX.md)
 
-Ponto de entrada principal para a documentação publica do projeto.
+Ponto de entrada principal para a documentação pública do projeto.
 
-## Comecando
+## Começando
 
-- [Início rapido](./QUICK-START.md)
-- [Referencia tecnica](./TECHNICAL-REFERENCE.md)
+- [Início rápido](./QUICK-START.md)
+- [Referência técnica](./TECHNICAL-REFERENCE.md)
 - [Guia operacional](./RUNBOOK.md)
 
 ## Arquitetura e dados

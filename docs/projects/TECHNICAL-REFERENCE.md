@@ -1,4 +1,4 @@
-# Referencia tecnica
+# Referência técnica
 
 [**PT-BR**](./TECHNICAL-REFERENCE.md) | [EN](./en/TECHNICAL-REFERENCE.md)
 
@@ -8,7 +8,7 @@
 - Frontend via docker compose: `3002`
 - Go Gateway API: `8080`
 - API NestJS Antifraude: `3001`
-- Metricas do worker NestJS: `3101`
+- Métricas do worker NestJS: `3101`
 - Kafka (redpanda): `9092`
 - Gateway Postgres: `5434`
 - Antifraud Postgres: `5433`
@@ -42,7 +42,7 @@
 - `GET /metrics`
 - `GET /metrics/prom`
 
-## Topicos de evento (Kafka)
+## Tópicos de evento (Kafka)
 
 - `pending_transactions` (gateway -> antifraude)
 - `transactions_result` (antifraude -> gateway)
@@ -52,12 +52,12 @@ Contratos de evento documentados em:
 - `go-gateway/docs/projects/KAFKA.md`
 - `nestjs-anti-fraud/docs/projects/EVENTS.md`
 
-## Criterios de decisao de transferencia
+## Critérios de decisão de transferência
 
 - `amount <= 10000`:
   - decisão local no gateway.
-  - regra atual: aleatorio (`~70% approved`, `~30% rejected`).
-  - nao publica `pending_transactions`.
+  - regra atual: aleatório (`~70% approved`, `~30% rejected`).
+  - não publica `pending_transactions`.
 - `amount > 10000`:
   - status inicial `pending`.
   - publica `pending_transactions` (via outbox) para antifraude.
@@ -90,7 +90,7 @@ Contratos de evento documentados em:
 
 - `API_BASE_URL`
 
-## Referencias adicionais
+## Referências adicionais
 
 - Arquitetura: `docs/projects/ARCHITECTURE.md`
 - Segurança: `docs/projects/SECURITY.md`

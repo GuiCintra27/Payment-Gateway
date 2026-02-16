@@ -2,9 +2,9 @@
 
 [**PT-BR**](./DEMO-SCRIPT.md) | [EN](./en/DEMO-SCRIPT.md)
 
-Objetivo: demonstrar arquitetura, fluxo principal, confiabilidade e operação do Payment Gateway em uma apresentacao curta.
+Objetivo: demonstrar arquitetura, fluxo principal, confiabilidade e operação do Payment Gateway em uma apresentação curta.
 
-## Preparacao (antes da demo)
+## Preparação (antes da demo)
 
 1. Subir a stack:
 
@@ -31,9 +31,9 @@ export REQUEST_ID="demo-$(date +%s)"
 
 ### 00:00-00:45 - Contexto
 
-- Problema: processar transferências com decisao antifraude assincrona para casos de alto valor.
+- Problema: processar transferências com decisão antifraude assíncrona para casos de alto valor.
 - Arquitetura: Next.js (UI), Go Gateway (API), NestJS (antifraude API + worker), Kafka e Postgres.
-- Resultado: fluxo resiliente com idempotencia, outbox/inbox, deduplicacao e DLQ.
+- Resultado: fluxo resiliente com idempotência, outbox/inbox, deduplicação e DLQ.
 
 ### 00:45-02:00 - Fluxo principal (conta + invoice pending)
 
@@ -71,7 +71,7 @@ export INVOICE_ID=$(echo "$INVOICE_RESPONSE" | sed -n 's/.*"id":"\([^"]*\)".*/\1
 echo "INVOICE_ID=$INVOICE_ID"
 ```
 
-3. Aguardar mudanca de status:
+3. Aguardar mudança de status:
 
 ```bash
 for i in $(seq 1 15); do
@@ -91,7 +91,7 @@ done
 curl -s "$BASE_URL/invoice/$INVOICE_ID/events" -H "X-API-KEY: $API_KEY"
 ```
 
-2. Idempotencia (mesma key + mesmo payload, sem duplicar):
+2. Idempotência (mesma key + mesmo payload, sem duplicar):
 
 ```bash
 curl -s -X POST "$BASE_URL/invoice" \
@@ -111,19 +111,19 @@ curl -s -X POST "$BASE_URL/invoice" \
 ```
 
 Falar durante a demo:
-- Outbox evita perda de evento entre persistencia e publicacao.
+- Outbox evita perda de evento entre persistência e publicação.
 - Inbox/dedup evita reprocessamento duplicado.
 - Falhas do consumer seguem para DLQ com replay controlado.
 
 ### 03:30-05:00 - Operação e observabilidade
 
-1. Correlation por request id:
+1. Correlação por request id:
 
 ```bash
 echo "request_id usado: $REQUEST_ID"
 ```
 
-2. Metricas Prometheus:
+2. Métricas Prometheus:
 
 ```bash
 curl -s http://localhost:8080/metrics/prom | head -n 30
@@ -141,8 +141,8 @@ echo "Abra o Grafana e filtre por request_id=$REQUEST_ID"
 ### 05:00-06:30 - Encerramento
 
 - Tradeoffs: simplicidade de operação local vs. componentes separados para produção.
-- Evolução: hardening de testes cross-service e automatizacao de release já integrada ao CI.
-- Mensagem final: projeto pronto para demonstrar nivel pleno+ em backend distribuido.
+- Evolução: hardening de testes cross-service e automatização de release já integrada ao CI.
+- Mensagem final: projeto pronto para demonstrar nível pleno+ em backend distribuído.
 
 ## Roteiro resumido para cola rápida
 
