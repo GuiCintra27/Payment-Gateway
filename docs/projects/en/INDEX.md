@@ -22,7 +22,6 @@ Main entrypoint for recruiter-friendly project documentation.
 - [Infrastructure](./INFRA.md)
 - [Security](./SECURITY.md)
 - [Observability](./OBSERVABILITY.md)
-- [Demo Script (5-7 min)](./DEMO-SCRIPT.md)
 
 ## Service Docs
 

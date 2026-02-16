@@ -53,11 +53,6 @@ Complete startup and troubleshooting guides:
 - Security baseline: API key HMAC rotation, rate limiting, secure cookies in production, and CORS hardening.
 - Observability: API/worker metrics, dashboards, structured logs, and centralized log persistence.
 
-## Demo (5-7 min)
-
-Use:
-- `docs/projects/en/DEMO-SCRIPT.md`
-
 ## Documentation Map
 
 Start here:

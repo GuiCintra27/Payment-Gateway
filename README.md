@@ -53,11 +53,6 @@ Guias completos de inicialização e troubleshooting:
 - Base de segurança: rotação de HMAC da API key, rate limit, cookies `secure` em produção e hardening de CORS.
 - Observabilidade: métricas de API/worker, dashboards, logs estruturados e persistência centralizada de logs.
 
-## Demo (5-7 min)
-
-Use:
-- `docs/projects/DEMO-SCRIPT.md`
-
 ## Mapa de documentação
 
 Comece aqui:

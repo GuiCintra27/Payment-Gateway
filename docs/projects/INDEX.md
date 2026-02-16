@@ -23,10 +23,6 @@ Ponto de entrada principal para a documentação pública do projeto.
 - [Segurança](./SECURITY.md)
 - [Observabilidade](./OBSERVABILITY.md)
 
-## Demo
-
-- [Script de demo (5-7 min)](./DEMO-SCRIPT.md)
-
 ## Arquivo
 
 - [Arquivo de docs do projeto](./archive/)
