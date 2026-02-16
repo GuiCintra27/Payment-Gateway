@@ -6,6 +6,7 @@ SCOPE="${1:-${CI_SCOPE:-all}}"
 SMOKE_COMPOSE_ARGS=(-f docker-compose.yaml)
 SMOKE_NESTJS_ENV=""
 SMOKE_NESTJS_ENV_BACKUP=""
+SMOKE_NESTJS_ENV_CREATED="false"
 SMOKE_TMP_ENV=""
 SMOKE_TMP_OVERRIDE=""
 
@@ -74,10 +75,12 @@ run_smoke() {
   SMOKE_NESTJS_ENV="$ROOT_DIR/nestjs-anti-fraud/.env"
   SMOKE_NESTJS_ENV_BACKUP="$ROOT_DIR/nestjs-anti-fraud/.env.ci.bak"
 
-  if [[ -w "$SMOKE_NESTJS_ENV" && -w "$(dirname "$SMOKE_NESTJS_ENV")" ]]; then
+  if [[ -w "$(dirname "$SMOKE_NESTJS_ENV")" ]]; then
     if [[ -f "$SMOKE_NESTJS_ENV" ]]; then
       log "Backing up existing nestjs-anti-fraud/.env for smoke"
       cp "$SMOKE_NESTJS_ENV" "$SMOKE_NESTJS_ENV_BACKUP"
+    else
+      SMOKE_NESTJS_ENV_CREATED="true"
     fi
 
     log "Seeding nestjs-anti-fraud/.env for docker compose smoke"
@@ -132,15 +135,22 @@ cleanup() {
 
   if [[ -n "$SMOKE_NESTJS_ENV_BACKUP" && -f "$SMOKE_NESTJS_ENV_BACKUP" ]]; then
     log "Restoring nestjs-anti-fraud/.env from CI backup"
-    mv "$SMOKE_NESTJS_ENV_BACKUP" "$SMOKE_NESTJS_ENV"
+    if ! mv "$SMOKE_NESTJS_ENV_BACKUP" "$SMOKE_NESTJS_ENV"; then
+      log "WARN: failed to move backup .env, trying copy fallback"
+      cp "$SMOKE_NESTJS_ENV_BACKUP" "$SMOKE_NESTJS_ENV" 2>/dev/null || true
+      rm -f "$SMOKE_NESTJS_ENV_BACKUP" || true
+    fi
+  elif [[ "$SMOKE_NESTJS_ENV_CREATED" == "true" && -f "$SMOKE_NESTJS_ENV" ]]; then
+    log "Removing temporary nestjs-anti-fraud/.env created for smoke"
+    rm -f "$SMOKE_NESTJS_ENV" || true
   fi
 
   if [[ -n "$SMOKE_TMP_ENV" && -f "$SMOKE_TMP_ENV" ]]; then
-    rm -f "$SMOKE_TMP_ENV"
+    rm -f "$SMOKE_TMP_ENV" || true
   fi
 
   if [[ -n "$SMOKE_TMP_OVERRIDE" && -f "$SMOKE_TMP_OVERRIDE" ]]; then
-    rm -f "$SMOKE_TMP_OVERRIDE"
+    rm -f "$SMOKE_TMP_OVERRIDE" || true
   fi
 }
 
