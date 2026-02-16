@@ -28,3 +28,8 @@ Main entrypoint for recruiter-friendly project documentation.
 - [Go Gateway](../../../go-gateway/docs/projects/en/INDEX.md)
 - [NestJS Anti-fraud](../../../nestjs-anti-fraud/docs/projects/en/INDEX.md)
 - [Next Frontend](../../../next-frontend/docs/projects/en/INDEX.md)
+
+## Archive
+
+- [Project docs archive](../archive/)
+- [Internal historical archive](../../archive/)

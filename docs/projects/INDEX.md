@@ -23,10 +23,16 @@ Ponto de entrada principal para a documentação pública do projeto.
 - [Segurança](./SECURITY.md)
 - [Observabilidade](./OBSERVABILITY.md)
 
+## Service Docs
+
+- [Go Gateway](../../go-gateway/docs/projects/INDEX.md)
+- [NestJS Anti-fraud](../../nestjs-anti-fraud/docs/projects/INDEX.md)
+- [Next Frontend](../../next-frontend/docs/projects/INDEX.md)
+
 ## Arquivo
 
 - [Arquivo de docs do projeto](./archive/)
-- [Arquivo histórico interno](../archive/local/)
+- [Arquivo histórico interno](../archive/)
 
 ## Versão em inglês
 
