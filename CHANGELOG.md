@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/GuiCintra27/Payment-Gateway/compare/v0.2.2...v0.2.3) (2026-02-16)
+
+
+### Bug Fixes
+
+* **qa:** stabilize docker runtime, smoke flow, and frontend regressions ([a1cdaa8](https://github.com/GuiCintra27/Payment-Gateway/commit/a1cdaa8b0bc8c6d56934bee30a4256996fd5b9db))
+
 ## [0.2.2](https://github.com/GuiCintra27/Payment-Gateway/compare/v0.2.1...v0.2.2) (2026-02-12)
 
 
